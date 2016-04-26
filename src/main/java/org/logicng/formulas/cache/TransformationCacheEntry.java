@@ -43,7 +43,8 @@ public enum TransformationCacheEntry implements CacheEntry {
   TSEITIN_VARIABLE("Tseitin variable"),
   FACTORIZED_CNF("factorized conjunctive normal form"),
   FACTORIZED_DNF("factorized disjunctive normal form"),
-  AIG("and-inverter graph");
+  AIG("and-inverter graph"),
+  UNITPROPAGATED("unit propagated form");
 
   private String description;
 
