@@ -42,7 +42,7 @@ import java.util.Collection;
  * expansion.  If {@code x} is eliminated from a formula {@code f}, the resulting formula is
  * {@code f[true/x] | f[false/x]}.
  * <p>
- * This transformation cannot be cached since it is dependent on the set of literals to eliminate.
+ * This transformation cannot be cached since it is dependent on the set of variables to eliminate.
  * @author Christoph Zengler
  * @version 1.0
  * @since 1.0

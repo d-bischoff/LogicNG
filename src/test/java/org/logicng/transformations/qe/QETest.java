@@ -38,8 +38,8 @@ import org.logicng.io.parsers.PropositionalParser;
 import java.util.Arrays;
 
 /**
- * Unit tests for {@link UniversalQuantifierElimination} and {@link ExistentialQuantifierElimination}.
- * @author Christoph Zengler
+ * Unit tests for {@link UniversalQuantifierElimination} and {@link ExistentialQuantifierElimination} and {@link ExistentialQuantifierEliminationModelEnumerationBased}.
+ * @author Christoph Zengler, Daniel Bischoff
  * @version 1.0
  * @since 1.0
  */
@@ -50,6 +50,7 @@ public class QETest {
   private final ExistentialQuantifierElimination ex1 = new ExistentialQuantifierElimination();
   private final ExistentialQuantifierElimination ex2 = new ExistentialQuantifierElimination(f.variable("x"));
   private final ExistentialQuantifierElimination ex3 = new ExistentialQuantifierElimination(Arrays.asList(f.variable("x"), f.variable("y")));
+  private final ExistentialQuantifierEliminationModelEnumerationBased ex4 = new ExistentialQuantifierEliminationModelEnumerationBased(Arrays.asList(f.variable("x"), f.variable("y")));
   private final UniversalQuantifierElimination uni1 = new UniversalQuantifierElimination();
   private final UniversalQuantifierElimination uni2 = new UniversalQuantifierElimination(f.variable("x"));
   private final UniversalQuantifierElimination uni3 = new UniversalQuantifierElimination(Arrays.asList(f.variable("x"), f.variable("y")));
@@ -59,12 +60,14 @@ public class QETest {
     Assert.assertEquals(f.verum(), f.verum().transform(ex1));
     Assert.assertEquals(f.verum(), f.verum().transform(ex2));
     Assert.assertEquals(f.verum(), f.verum().transform(ex3));
+    Assert.assertEquals(f.verum(), f.verum().transform(ex4));
     Assert.assertEquals(f.verum(), f.verum().transform(uni1));
     Assert.assertEquals(f.verum(), f.verum().transform(uni2));
     Assert.assertEquals(f.verum(), f.verum().transform(uni3));
     Assert.assertEquals(f.falsum(), f.falsum().transform(ex1));
     Assert.assertEquals(f.falsum(), f.falsum().transform(ex2));
     Assert.assertEquals(f.falsum(), f.falsum().transform(ex3));
+    Assert.assertEquals(f.falsum(), f.falsum().transform(ex4));
     Assert.assertEquals(f.falsum(), f.falsum().transform(uni1));
     Assert.assertEquals(f.falsum(), f.falsum().transform(uni2));
     Assert.assertEquals(f.falsum(), f.falsum().transform(uni3));
@@ -78,18 +81,21 @@ public class QETest {
     Assert.assertEquals(x, x.transform(ex1));
     Assert.assertEquals(f.verum(), x.transform(ex2));
     Assert.assertEquals(f.verum(), x.transform(ex3));
+    Assert.assertEquals(x, x.transform(ex4));
     Assert.assertEquals(x, x.transform(uni1));
     Assert.assertEquals(f.falsum(), x.transform(uni2));
     Assert.assertEquals(f.falsum(), x.transform(uni3));
     Assert.assertEquals(y, y.transform(ex1));
     Assert.assertEquals(y, y.transform(ex2));
     Assert.assertEquals(f.verum(), y.transform(ex3));
+    Assert.assertEquals(y, y.transform(ex4));
     Assert.assertEquals(y, y.transform(uni1));
     Assert.assertEquals(y, y.transform(uni2));
     Assert.assertEquals(f.falsum(), y.transform(uni3));
     Assert.assertEquals(z, z.transform(ex1));
     Assert.assertEquals(z, z.transform(ex2));
     Assert.assertEquals(z, z.transform(ex3));
+    Assert.assertEquals(f.verum(), z.transform(ex4));
     Assert.assertEquals(z, z.transform(uni1));
     Assert.assertEquals(z, z.transform(uni2));
     Assert.assertEquals(z, z.transform(uni3));
@@ -103,18 +109,21 @@ public class QETest {
     Assert.assertEquals(f1, f1.transform(ex1));
     Assert.assertEquals(f1, f1.transform(ex2));
     Assert.assertEquals(f1, f1.transform(ex3));
+    Assert.assertEquals(f.verum(), f1.transform(ex4));
     Assert.assertEquals(f1, f1.transform(uni1));
     Assert.assertEquals(f1, f1.transform(uni2));
     Assert.assertEquals(f1, f1.transform(uni3));
     Assert.assertEquals(f2, f2.transform(ex1));
     Assert.assertEquals(p.parse("b | ~c"), f2.transform(ex2));
     Assert.assertEquals(p.parse("b | ~c"), f2.transform(ex3));
+    Assert.assertEquals(p.parse("x"), f2.transform(ex4));
     Assert.assertEquals(f2, f2.transform(uni1));
     Assert.assertEquals(f.falsum(), f2.transform(uni2));
     Assert.assertEquals(f.falsum(), f2.transform(uni3));
     Assert.assertEquals(f3, f3.transform(ex1));
     Assert.assertEquals(p.parse("y | ~c"), f3.transform(ex2));
     Assert.assertEquals(f.verum(), f3.transform(ex3));
+    Assert.assertEquals(p.parse("x & ~y | x & y"), f3.transform(ex4));
     Assert.assertEquals(f3, f3.transform(uni1));
     Assert.assertEquals(f.falsum(), f3.transform(uni2));
     Assert.assertEquals(f.falsum(), f3.transform(uni3));

@@ -13,7 +13,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Created by Daniel Bischoff on 21.01.2016. Copyright by Daniel Bischoff
+ * @author Daniel Bischoff
+ * on 21.01.2016.
+ *
  */
 public class IncrementableAssignmentTest {
 

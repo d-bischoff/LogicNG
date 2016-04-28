@@ -9,7 +9,9 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
- * Created by Daniel Bischoff on 14.01.2016. Copyright by Daniel Bischoff
+ * Created by
+ * @author Daniel Bischoff
+ * on 14.01.2016.
  */
 public class IncrementableAssignment extends Assignment {
 
