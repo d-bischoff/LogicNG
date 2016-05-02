@@ -38,8 +38,12 @@ import org.logicng.io.parsers.PropositionalParser;
 import java.util.Arrays;
 
 /**
+<<<<<<< HEAD
  * Unit tests for {@link UniversalQuantifierElimination} and {@link ExistentialQuantifierElimination} and {@link ExistentialQuantifierEliminationModelEnumerationBased}.
  * @author Christoph Zengler, Daniel Bischoff
+=======
+ * Unit tests for {@link UniversalQuantifierElimination} and {@link ExistentialQuantifierElimination}.
+>>>>>>> 4d21492f577b97c35e3f087604a231b6bd8ed85a
  * @version 1.0
  * @since 1.0
  */
