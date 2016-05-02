@@ -17,8 +17,7 @@ import java.util.Collection;
  * This method for quantifier elimination can be faster if the number of free variables in the formula is small.
  * This transformation cannot be cached since it is dependent on the set of free variables.
  *
- * @author Daniel Bischoff
- *         on 24.03.2016.
+ * @version 1.0.0
  */
 public class ExistentialQuantifierEliminationModelEnumerationBased implements FormulaTransformation {
 
