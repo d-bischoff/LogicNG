@@ -59,7 +59,6 @@ import java.util.TreeMap;
 
 /**
  * The super class for all MiniSAT-style solvers.
- * @author Christoph Zengler
  * @version 1.0
  * @since 1.0
  */
@@ -326,7 +325,7 @@ public abstract class MiniSatStyleSolver {
   public abstract void reset();
 
   /**
-   * Returns the current model of the solver or {@code null} if there is none.
+   * Returns the current model of the solver or an empty vector if there is none.
    * @return the current model of the solver
    */
   public LNGBooleanVector model() {
@@ -334,7 +333,7 @@ public abstract class MiniSatStyleSolver {
   }
 
   /**
-   * Returns the current conflict of the solver or {@code null} if there is none.
+   * Returns the current conflict of the solver or an empty vector if there is none.
    * @return the current conflict of the solver
    */
   public LNGIntVector conflict() {

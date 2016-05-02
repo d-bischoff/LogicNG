@@ -64,7 +64,6 @@ import org.logicng.solvers.datastructures.CLWatch;
 
 /**
  * The super class for all CleaneLing-style solvers.
- * @author Christoph Zengler
  * @version 1.0
  * @since 1.0
  */
@@ -191,7 +190,7 @@ public abstract class CleaneLingStyleSolver {
   public abstract Tristate solve(final SATHandler handler);
 
   /**
-   * Returns the current model of the solver.
+   * Returns the current model of the solver or an empty vector if there is none.
    * @return the current model of the solver
    */
   public LNGBooleanVector model() {
