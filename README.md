@@ -1,4 +1,4 @@
-[![wercker status](https://app.wercker.com/status/24c4765f3a0d79520ad80a1e4c20cfa2/s/master "wercker status")](https://app.wercker.com/project/bykey/24c4765f3a0d79520ad80a1e4c20cfa2) [![Coverage Status](https://coveralls.io/repos/logic-ng/LogicNG/badge.svg?branch=master&service=github)](https://coveralls.io/github/logic-ng/LogicNG?branch=master) ![License](https://img.shields.io/badge/license-Apache%202-blue.svg) ![Version](https://img.shields.io/badge/version-1.0.1-ff69b4.svg)
+[![wercker status](https://app.wercker.com/status/24c4765f3a0d79520ad80a1e4c20cfa2/s/master "wercker status")](https://app.wercker.com/project/bykey/24c4765f3a0d79520ad80a1e4c20cfa2) [![Coverage Status](https://coveralls.io/repos/logic-ng/LogicNG/badge.svg?branch=master&service=github)](https://coveralls.io/github/logic-ng/LogicNG?branch=master) ![License](https://img.shields.io/badge/license-Apache%202-blue.svg) ![Version](https://img.shields.io/badge/version-1.0.2-ff69b4.svg)
 
 <img src="https://github.com/logic-ng/LogicNG/blob/master/doc/logo/logo_big.png" alt="logo" width="300">
 
@@ -17,6 +17,10 @@ Compared to other implementation of logic libraries on the JVM this is a huge me
 The `master` branch contains the latest release of LogicNG.  If you want a *stable* and *well tested* version you should choose this branch.  The `development` branch reflects the *current state* of the next version.  This branch will always compile, but code might not be as well tested and APIs may still change before the next release.  If you want to try *cutting edge* features, you can checkout this branch at your own risk.  It is *not recommended* to use the development version for *production* systems.  Larger features will be developed in their own branches and will be merged to the development branch when ready.
 
 ## Getting Started
+### Compilation
+To compile LogicNG simply run `mvn compile` to build the parsers and compile the source code.  You can build a jar of the library with `mvn package` or install it in your local maven repository via `mvn install`.
+
+### First Steps
 The following code creates the Boolean Formula *A and not (B or not C)* programatically:
 ```java
 final FormulaFactory f = new FormulaFactory();
