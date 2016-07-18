@@ -37,6 +37,7 @@ import org.logicng.solvers.MiniSat;
 
 import java.util.Collection;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * A function that computes the backbone for a given formula, i.e. a set of literals that is fix in all satisfying
@@ -61,7 +62,7 @@ public class BackboneComputationSolutionRefinementBased implements FormulaFuncti
     MiniSat solver = MiniSat.miniSat(input.factory());
     solver.add(input);
     if (solver.sat() != Tristate.TRUE)
-      throw new IllegalArgumentException("the formula has to be satisfiable");
+      return new TreeSet<>();
     SortedSet<Literal> backbone = null;
     do {
       Assignment solution = solver.model();
