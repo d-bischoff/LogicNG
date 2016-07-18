@@ -28,9 +28,12 @@
 
 package org.logicng.solvers;
 
+import org.logicng.cardinalityconstraints.CCEncoder;
+import org.logicng.cardinalityconstraints.CCIncrementalData;
 import org.logicng.collections.LNGBooleanVector;
 import org.logicng.collections.LNGIntVector;
 import org.logicng.datastructures.Assignment;
+import org.logicng.datastructures.EncodingResult;
 import org.logicng.datastructures.Tristate;
 import org.logicng.formulas.CType;
 import org.logicng.formulas.FType;
@@ -54,6 +57,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static org.logicng.datastructures.Tristate.TRUE;
 import static org.logicng.datastructures.Tristate.UNDEF;
@@ -68,6 +73,7 @@ public final class MiniSat extends SATSolver {
   private enum SolverStyle {MINISAT, GLUCOSE, MINICARD}
 
   private final MiniSatStyleSolver solver;
+  private final CCEncoder ccEncoder;
   private final SolverStyle style;
   private boolean incremental;
   private boolean initialPhase;
@@ -102,6 +108,7 @@ public final class MiniSat extends SATSolver {
     this.incremental = miniSatConfig.incremental();
     this.validStates = new LNGIntVector();
     this.nextStateId = 0;
+    this.ccEncoder = new CCEncoder(f);
   }
 
   /**
@@ -164,22 +171,35 @@ public final class MiniSat extends SATSolver {
   }
 
   @Override
+  public CCIncrementalData addIncrementalCC(PBConstraint cc) {
+    if (!cc.isCC())
+      throw new IllegalArgumentException("Cannot generate an incremental cardinality constraint on a pseudo-Boolean constraint");
+    final EncodingResult result = EncodingResult.resultForMiniSat(this.f, this);
+    return ccEncoder.encodeIncremental(cc, result);
+  }
+
+  @Override
   public void add(final Formula formula) {
     if (formula.type() == FType.PBC) {
       final PBConstraint constraint = (PBConstraint) formula;
       this.result = UNDEF;
-      if (this.style == SolverStyle.MINICARD && constraint.isCC()) {
-        if (constraint.comparator() == CType.LE)
-          ((MiniCard) this.solver).addAtMost(generateClauseVector(Arrays.asList(constraint.operands())), constraint.rhs());
-        else if (constraint.comparator() == CType.LT && constraint.rhs() > 3)
-          ((MiniCard) this.solver).addAtMost(generateClauseVector(Arrays.asList(constraint.operands())), constraint.rhs() - 1);
-        else if (constraint.comparator() == CType.EQ && constraint.rhs() == 1) {
-          ((MiniCard) this.solver).addAtMost(generateClauseVector(Arrays.asList(constraint.operands())), constraint.rhs());
-          this.solver.addClause(generateClauseVector(Arrays.asList(constraint.operands())));
-        } else
-          super.add(constraint);
+      if (constraint.isCC()) {
+        if (this.style == SolverStyle.MINICARD) {
+          if (constraint.comparator() == CType.LE)
+            ((MiniCard) this.solver).addAtMost(generateClauseVector(Arrays.asList(constraint.operands())), constraint.rhs());
+          else if (constraint.comparator() == CType.LT && constraint.rhs() > 3)
+            ((MiniCard) this.solver).addAtMost(generateClauseVector(Arrays.asList(constraint.operands())), constraint.rhs() - 1);
+          else if (constraint.comparator() == CType.EQ && constraint.rhs() == 1) {
+            ((MiniCard) this.solver).addAtMost(generateClauseVector(Arrays.asList(constraint.operands())), constraint.rhs());
+            this.solver.addClause(generateClauseVector(Arrays.asList(constraint.operands())));
+          } else
+            this.addClauseSet(constraint.cnf());
+        } else {
+          final EncodingResult result = EncodingResult.resultForMiniSat(this.f, this);
+          ccEncoder.encode(constraint, result);
+        }
       } else
-        super.add(constraint);
+        this.addClauseSet(constraint.cnf());
     } else
       this.addClauseSet(formula.cnf());
   }
@@ -188,6 +208,14 @@ public final class MiniSat extends SATSolver {
   protected void addClause(final Formula formula) {
     this.result = UNDEF;
     this.solver.addClause(generateClauseVector(formula.literals()));
+  }
+
+  @Override
+  protected void addClauseWithRelaxation(Variable relaxationVar, Formula formula) {
+    this.result = UNDEF;
+    final SortedSet<Literal> literals = new TreeSet<>(formula.literals());
+    literals.add(relaxationVar);
+    this.solver.addClause(generateClauseVector(literals));
   }
 
   /**
@@ -222,7 +250,7 @@ public final class MiniSat extends SATSolver {
     final LNGIntVector clauseVec = new LNGIntVector(1);
     int index = this.solver.idxForName(literal.name());
     if (index == -1) {
-      index = this.solver.newVar(true, true);
+      index = this.solver.newVar(!initialPhase, true);
       this.solver.addName(literal.name(), index);
     }
     int litNum = literal.phase() ? index * 2 : (index * 2) ^ 1;
@@ -238,7 +266,7 @@ public final class MiniSat extends SATSolver {
     for (final Literal literal : assumptionSet) {
       int index = this.solver.idxForName(literal.name());
       if (index == -1) {
-        index = this.solver.newVar(true, true);
+        index = this.solver.newVar(!initialPhase, true);
         this.solver.addName(literal.name(), index);
       }
       int litNum = literal.phase() ? index * 2 : (index * 2) ^ 1;
@@ -346,6 +374,14 @@ public final class MiniSat extends SATSolver {
    */
   public MiniSatStyleSolver underlyingSolver() {
     return this.solver;
+  }
+
+  /**
+   * Returns the initial phase of literals of this solver.
+   * @return the initial phase of literals of this solver
+   */
+  public boolean initialPhase() {
+    return this.initialPhase;
   }
 
   @Override

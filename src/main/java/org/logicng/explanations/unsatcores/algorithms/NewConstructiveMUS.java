@@ -26,53 +26,57 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.cardinalityconstraints;
+package org.logicng.explanations.unsatcores.algorithms;
 
-import org.logicng.collections.ImmutableFormulaList;
-import org.logicng.formulas.FType;
-import org.logicng.formulas.Formula;
+import org.logicng.datastructures.Assignment;
+import org.logicng.datastructures.Tristate;
+import org.logicng.explanations.unsatcores.MUSConfig;
+import org.logicng.explanations.unsatcores.UNSATCore;
 import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
+import org.logicng.propositions.Proposition;
+import org.logicng.solvers.MiniSat;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
- * Encodes that exactly one variable is assigned value true.  Uses the 'naive' encoding with no introduction
- * of new variables but quadratic size.
- * @version 1.0
- * @since 1.0
+ * A new constructive MUS algorithm due to Marques-Silva & Lynce.
+ * @version 1.1
+ * @since 1.1
  */
-public final class CCEXOPure extends CCExactlyOne {
-
-  private final FormulaFactory f;
-
-  /**
-   * Constructs the naive EXO encoder.
-   * @param f the formula factory
-   */
-  public CCEXOPure(final FormulaFactory f) {
-    this.f = f;
-  }
+public final class NewConstructiveMUS extends MUSAlgorithm {
 
   @Override
-  public ImmutableFormulaList build(final Variable... vars) {
-    final List<Formula> result = new LinkedList<>();
-    if (vars.length == 0)
-      return new ImmutableFormulaList(FType.AND);
-    if (vars.length == 1) {
-      result.add(vars[0]);
-      return new ImmutableFormulaList(FType.AND, result);
+  public UNSATCore computeMUS(List<Proposition> propositions, final FormulaFactory f, final MUSConfig config) {
+    final List<Proposition> mus = new ArrayList<>(propositions.size());
+    int nrRelaxedProps = propositions.size();
+    final MiniSat solver = MiniSat.glucose(f);
+    final List<Variable> relexationVars = new ArrayList<>();
+    final SortedMap<Variable, Proposition> propMapping = new TreeMap<>();
+    for (final Proposition prop : propositions) {
+      final Variable relexationVar = f.variable("@MUS_NC_" + relexationVars.size());
+      relexationVars.add(relexationVar);
+      solver.addWithRelaxation(relexationVar, prop);
+      propMapping.put(relexationVar, prop);
     }
-    result.add(this.f.clause(vars));
-    for (int i = 0; i < vars.length; i++)
-      for (int j = i + 1; j < vars.length; j++)
-        result.add(this.f.clause(vars[i].negate(), vars[j].negate()));
-    return new ImmutableFormulaList(FType.AND, result);
-  }
-
-  @Override
-  public String toString() {
-    return this.getClass().getSimpleName();
+    solver.add(f.amo(relexationVars));
+    while (nrRelaxedProps > 0) {
+      final Tristate result = solver.sat();
+      if (result == Tristate.TRUE) {
+        final Assignment model = solver.model(relexationVars);
+        assert model != null;
+        final Variable trueVariable = model.negativeVariables().get(0);
+        solver.add(trueVariable.negate());
+        mus.add(propMapping.get(trueVariable));
+        nrRelaxedProps--;
+        relexationVars.remove(trueVariable);
+      } else {
+        // UNSAT core required...
+      }
+    }
+    return new UNSATCore(mus, true);
   }
 }

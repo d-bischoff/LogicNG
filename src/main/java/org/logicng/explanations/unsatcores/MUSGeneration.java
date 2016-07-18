@@ -26,33 +26,65 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.cardinalityconstraints;
+package org.logicng.explanations.unsatcores;
 
-import org.logicng.collections.ImmutableFormulaList;
-import org.logicng.formulas.Variable;
+import org.logicng.explanations.unsatcores.algorithms.DeletionBasedMUS;
+import org.logicng.explanations.unsatcores.algorithms.PlainInsertionBasedMUS;
+import org.logicng.formulas.FormulaFactory;
+import org.logicng.propositions.Proposition;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
- * The interface for exactly-one (EXO) cardinality constraints.
- * @version 1.0
- * @since 1.0
+ * Computes a minimal unsatisfiable subset (MUS) of a given formula with different algorithms.
+ * @version 1.1
+ * @since 1.1
  */
-public abstract class CCExactlyOne {
+public final class MUSGeneration {
+
+  private final DeletionBasedMUS deletion;
+  private final PlainInsertionBasedMUS insertion;
 
   /**
-   * Builds a cardinality constraint of the form {@code var_1 + var_2 + ... + var_n = 1}.
-   * @param vars the variables {@code var_1 ... var_n}
-   * @return the CNF encoding of the cardinality constraint
+   * Constructs a new MUS generator.
    */
-  public ImmutableFormulaList build(Collection<Variable> vars) {
-    return this.build(vars.toArray(new Variable[vars.size()]));
+  public MUSGeneration() {
+    this.deletion = new DeletionBasedMUS();
+    this.insertion = new PlainInsertionBasedMUS();
   }
 
   /**
-   * Builds a cardinality constraint of the form {@code var_1 + var_2 + ... + var_n = 1}.
-   * @param vars the variables {@code var_1 ... var_n}
-   * @return the CNF encoding of the cardinality constraint
+   * Computes a MUS for the given propositions with the default algorithm and the default configuration.
+   * @param propositions the propositions
+   * @param f            the formula factory
+   * @return the MUS
    */
-  public abstract ImmutableFormulaList build(final Variable... vars);
+  public UNSATCore computeMUS(final List<Proposition> propositions, final FormulaFactory f) {
+    return this.computeMUS(propositions, f, new MUSConfig.Builder().build());
+  }
+
+  /**
+   * Computes a MUS for the given propositions and the given configuration of the MUS generation.
+   * @param propositions the propositions
+   * @param f            the formula factory
+   * @param config       the MUS configuration
+   * @return the MUS
+   */
+  public UNSATCore computeMUS(final List<Proposition> propositions, final FormulaFactory f, final MUSConfig config) {
+    if (propositions.isEmpty())
+      throw new IllegalArgumentException("Cannot generate a MUS for an empty list of propositions");
+    switch (config.algorithm) {
+      case PLAIN_INSERTION:
+        return insertion.computeMUS(propositions, f, config);
+      case DELETION:
+      default:
+        return deletion.computeMUS(propositions, f, config);
+    }
+  }
+
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName();
+  }
+
 }

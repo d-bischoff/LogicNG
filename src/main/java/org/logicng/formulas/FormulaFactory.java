@@ -35,7 +35,8 @@ import org.logicng.formulas.printer.FormulaStringRepresentation;
 import org.logicng.functions.SubNodeFunction;
 import org.logicng.io.parsers.ParserException;
 import org.logicng.io.parsers.PseudoBooleanParser;
-import org.logicng.transformations.cnf.CNFFactorization;
+import org.logicng.pseudobooleans.PBEncoder;
+import org.logicng.transformations.cnf.CNFEncoder;
 import org.logicng.util.Pair;
 
 import java.util.Arrays;
@@ -107,8 +108,9 @@ public final class FormulaFactory {
   private int pbCounter;
   private int cnfCounter;
 
-  private final FormulaTransformation defaultCNFTransformation;
   private final SubNodeFunction subformulaFunction;
+  private final PBEncoder pbEncoder;
+  private final CNFEncoder cnfEncoder;
 
   private final PseudoBooleanParser parser;
 
@@ -125,7 +127,7 @@ public final class FormulaFactory {
     this.formulaAdditionResult = new boolean[2];
     this.stringRepresentation = stringRepresentation;
     this.configurations = new EnumMap<>(ConfigurationType.class);
-    this.defaultCNFTransformation = new CNFFactorization();
+    this.cnfEncoder = new CNFEncoder(this);
     this.subformulaFunction = new SubNodeFunction();
     if (!name.isEmpty()) {
       this.ccPrefix = CC_PREFIX + name + "_";
@@ -136,6 +138,7 @@ public final class FormulaFactory {
       this.pbPrefix = PB_PREFIX;
       this.cnfPrefix = CNF_PREFIX;
     }
+    this.pbEncoder = new PBEncoder(this);
     this.parser = new PseudoBooleanParser(this);
   }
 
@@ -160,7 +163,7 @@ public final class FormulaFactory {
   /**
    * Removes all formulas from the factory cache.
    */
-  private void clear() {
+  public void clear() {
     this.posLiterals = new HashMap<>();
     this.negLiterals = new HashMap<>();
     this.generatedVariables = new HashSet<>();
@@ -208,19 +211,27 @@ public final class FormulaFactory {
   }
 
   /**
-   * Returns the default CNF transformation for this factory.
-   * @return the default CNF transformation for this factory
-   */
-  public FormulaTransformation cnfTransformation() {
-    return this.defaultCNFTransformation;
-  }
-
-  /**
    * Returns a function to compute the sub-formulas.
    * @return a function to compute the sub-formulas
    */
   public SubNodeFunction subformulaFunction() {
     return this.subformulaFunction;
+  }
+
+  /**
+   * Returns the default pseudo-Boolean encoder of this formula factory.
+   * @return the default pseudo-Boolean encoder of this formula factory
+   */
+  public PBEncoder pbEncoder() {
+    return this.pbEncoder;
+  }
+
+  /**
+   * Returns the default CNF encoder of this formula factory.
+   * @return the default CNF encoder of this formula factory
+   */
+  public CNFEncoder cnfEncoder() {
+    return this.cnfEncoder;
   }
 
   /**
