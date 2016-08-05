@@ -43,7 +43,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
- * A new constructive MUS algorithm due to Marques-Silva & Lynce.
+ * A new constructive MUS algorithm due to Marques-Silva and Lynce.
  * @version 1.1
  * @since 1.1
  */
@@ -65,6 +65,7 @@ public final class NewConstructiveMUS extends MUSAlgorithm {
     solver.add(f.amo(relexationVars));
     while (nrRelaxedProps > 0) {
       final Tristate result = solver.sat();
+      //noinspection StatementWithEmptyBody
       if (result == Tristate.TRUE) {
         final Assignment model = solver.model(relexationVars);
         assert model != null;

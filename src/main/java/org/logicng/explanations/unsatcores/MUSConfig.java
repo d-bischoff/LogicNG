@@ -75,6 +75,7 @@ public final class MUSConfig extends Configuration {
 
   /**
    * Constructs a new configuration with a given type.
+   * @param builder - the builder whichs algorithm to use
    */
   public MUSConfig(final Builder builder) {
     super(ConfigurationType.MUS);
@@ -83,9 +84,6 @@ public final class MUSConfig extends Configuration {
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder("MUSConfig{\n");
-    sb.append("algorithm=").append(this.algorithm).append("\n");
-    sb.append("}\n");
-    return sb.toString();
+    return "MUSConfig{\nalgorithm=" + this.algorithm + "\n}\n";
   }
 }

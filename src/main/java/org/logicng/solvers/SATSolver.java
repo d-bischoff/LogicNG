@@ -197,6 +197,7 @@ public abstract class SATSolver {
   /**
    * Adds a formula which must be a clause to the solver.
    * @param formula the clause
+   * @param relaxationVar the relaxation variable
    */
   protected abstract void addClauseWithRelaxation(final Variable relaxationVar, final Formula formula);
 
