@@ -26,58 +26,23 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.explanations.unsatcores.algorithms;
+package org.logicng.configurations;
 
-import org.logicng.datastructures.Assignment;
-import org.logicng.datastructures.Tristate;
-import org.logicng.explanations.unsatcores.MUSConfig;
-import org.logicng.explanations.unsatcores.UNSATCore;
-import org.logicng.formulas.FormulaFactory;
-import org.logicng.formulas.Variable;
-import org.logicng.propositions.Proposition;
-import org.logicng.solvers.MiniSat;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * A new constructive MUS algorithm due to Marques-Silva and Lynce.
+ * Unit tests for the package configurations.
  * @version 1.1
  * @since 1.1
  */
-public final class NewConstructiveMUS extends MUSAlgorithm {
+public class ConfigurationsTest {
 
-  @Override
-  public UNSATCore computeMUS(List<Proposition> propositions, final FormulaFactory f, final MUSConfig config) {
-    final List<Proposition> mus = new ArrayList<>(propositions.size());
-    int nrRelaxedProps = propositions.size();
-    final MiniSat solver = MiniSat.glucose(f);
-    final List<Variable> relexationVars = new ArrayList<>();
-    final SortedMap<Variable, Proposition> propMapping = new TreeMap<>();
-    for (final Proposition prop : propositions) {
-      final Variable relexationVar = f.variable("@MUS_NC_" + relexationVars.size());
-      relexationVars.add(relexationVar);
-      solver.addWithRelaxation(relexationVar, prop);
-      propMapping.put(relexationVar, prop);
-    }
-    solver.add(f.amo(relexationVars));
-    while (nrRelaxedProps > 0) {
-      final Tristate result = solver.sat();
-      //noinspection StatementWithEmptyBody
-      if (result == Tristate.TRUE) {
-        final Assignment model = solver.model(relexationVars);
-        assert model != null;
-        final Variable trueVariable = model.negativeVariables().get(0);
-        solver.add(trueVariable.negate());
-        mus.add(propMapping.get(trueVariable));
-        nrRelaxedProps--;
-        relexationVars.remove(trueVariable);
-      } else {
-        // UNSAT core required...
-      }
-    }
-    return new UNSATCore(mus, true);
+  @Test
+  public void testValueOf() {
+    Assert.assertEquals(ConfigurationType.CNF, ConfigurationType.valueOf("CNF"));
+    Assert.assertEquals(ConfigurationType.GLUCOSE, ConfigurationType.valueOf("GLUCOSE"));
+    Assert.assertEquals(ConfigurationType.MAXSAT, ConfigurationType.valueOf("MAXSAT"));
+    Assert.assertEquals(ConfigurationType.CC_ENCODER, ConfigurationType.valueOf("CC_ENCODER"));
   }
 }

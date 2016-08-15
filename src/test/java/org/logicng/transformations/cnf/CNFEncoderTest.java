@@ -155,7 +155,24 @@ public class CNFEncoderTest {
   }
 
   @Test
-  public void testBug() throws ParserException {
+  public void testStrings() {
+    String expected = "CNFConfig{\n" +
+            "algorithm=TSEITIN\n" +
+            "fallbackAlgorithmForAdvancedEncoding=PLAISTED_GREENBAUM\n" +
+            "distributedBoundary=-1\n" +
+            "createdClauseBoundary=1000\n" +
+            "atomBoundary=12\n" +
+            "}\n";
+    FormulaFactory f = new FormulaFactory();
+    CNFConfig config = new CNFConfig.Builder().algorithm(CNFConfig.Algorithm.TSEITIN).fallbackAlgorithmForAdvancedEncoding(CNFConfig.Algorithm.PLAISTED_GREENBAUM).build();
+    CNFEncoder encoder = new CNFEncoder(f, config);
+    Assert.assertEquals(expected, config.toString());
+    Assert.assertEquals(expected, encoder.toString());
+    Assert.assertEquals(CNFConfig.Algorithm.TSEITIN, CNFConfig.Algorithm.valueOf("TSEITIN"));
+  }
+
+  @Test
+  public void testBugIssueNo4() throws ParserException {
     final FormulaFactory f = new FormulaFactory();
     final PropositionalParser parser = new PropositionalParser(f);
     final Formula f1 = parser.parse("(x10 & x9 & x3 & x12 | x10 & x9 & x8 | x9 & x8 & x12) & ~x5 & ~x7 & x1 | (x10 & x9 & x3 & x12 | x10 & x9 & x8 | x9 & x8 & x12) & ~(x11 & x3) & ~(x11 & x8) & ~x5 & ~x7 & x0");
@@ -164,6 +181,11 @@ public class CNFEncoderTest {
     final Formula f4 = parser.parse("(x1 & x3 & x4 | x0 & (x2 & x6 | x3 & x4) | x9 & (x1 & x10 & x8 & ~x12 & x3 | (x1 | x0) & (x12 & (x10 & x3 | x8) | x10 & x8) & ~x11)) & ~x5 & ~x7");
     Assert.assertNotEquals(null, f.not(f.equivalence(f1, f2)).cnf());
     Assert.assertNotEquals(null, f.not(f.equivalence(f3, f4)).cnf());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testWrongFallbackForConfig() {
+    new CNFConfig.Builder().fallbackAlgorithmForAdvancedEncoding(CNFConfig.Algorithm.FACTORIZATION).build();
   }
 
 }
