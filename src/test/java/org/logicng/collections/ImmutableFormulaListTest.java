@@ -35,7 +35,6 @@ import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
 
 /**
- * A new constructive MUS algorithm due to Marques-Silva and Lynce.
  * Unit tests for {@link ImmutableFormulaList}.
  * @version 1.1
  * @since 1.1

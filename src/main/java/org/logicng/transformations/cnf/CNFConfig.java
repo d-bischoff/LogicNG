@@ -132,6 +132,7 @@ public final class CNFConfig extends Configuration {
 
   /**
    * Constructs a new configuration with a given type.
+   * @param builder - the builds whose algorithm to be used
    */
   public CNFConfig(final Builder builder) {
     super(ConfigurationType.CNF);
