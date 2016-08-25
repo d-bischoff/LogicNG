@@ -107,8 +107,8 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
     int v = vars.size();
     MSVariable newVar = new MSVariable(sign);
     vars.push(newVar);
-    watches.push(new LNGVector<MSWatcher>());
-    watches.push(new LNGVector<MSWatcher>());
+    watches.push(new LNGVector<>());
+    watches.push(new LNGVector<>());
     seen.push(false);
     newVar.setDecision(dvar);
     insertVarOrder(v);
@@ -194,7 +194,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
    * @return a {@link Tristate} representing the result.  {@code FALSE} if the formula is UNSAT, {@code TRUE} if the
    * formula is SAT, and {@code UNDEF} if the state is not known yet (restart) or the handler canceled the computation
    */
-  private Tristate search(int nofConflicts) {
+  private Tristate search(int nofConflicts) { //TODO we should probably remove the restart feature all together? Since we are going to explore the whole thing anyway.
     if (!ok)
       return Tristate.FALSE;
     int conflictC = 0;
@@ -231,7 +231,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
           maxLearnts *= learntsizeInc;
         }
       } else {
-        if (nofConflicts >= 0 && conflictC >= nofConflicts) {
+        if (nofConflicts >= 0 && conflictC >= nofConflicts) { //TODO remove this, no canceling? Wieso wird das überhaupt hier gecheckt? es gab doch garkeinen conflict
           cancelUntil(0);
           return Tristate.UNDEF;
         }
@@ -256,8 +256,19 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
         }
         if (next == LIT_UNDEF) {
           next = pickBranchLit();
-          if (next == LIT_UNDEF)
+          if (next == LIT_UNDEF) {
+            //TODO hier sollten wir jetzt eine neue blocking clause bauen?!
+            //LNGIntVector blockingIntVector = new LNGIntVector();
+            //TODO fill it
+            //MSClause block = new MSClause(blockingIntVector,false); //TODO vermutlich sollte learnt = false sein, damit diese Klausel nicht "vergessen" werden kann?!
+            //clauses.push(block);
+            //ToDO oder
+            //attachClause(block);
+            //TODO irgendwie müssen wir diesen Branch jetzt nutzen um einen Teil des BDDs bauen.
+            //TODO wir brauchen trailLim und trail ?!
             return Tristate.TRUE;
+            //TODO einfach auskommentieren oder wo rennt der solver hin wenn wir jetzt keinen conflict melden?
+          }
         }
         trailLim.push(trail.size());
         uncheckedEnqueue(next, null);
@@ -327,6 +338,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
    * and the new backtracking level is stored in the solver state.
    * @param conflictClause the conflict clause to start the resolution analysis with
    * @param outLearnt      the vector where the new learnt 1-UIP clause is stored
+   * TODO also die 1UIP sollten wir berechnen, aber backtracken sollten wir nur bis zur letzten decision. Wir müssen eh alles explorieren und wenn wir schonmal da sind machen wir das auch gleich.
    */
   private void analyze(final MSClause conflictClause, final LNGIntVector outLearnt) {
     MSClause c = conflictClause;
@@ -399,7 +411,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
       int p = outLearnt.get(max);
       outLearnt.set(max, outLearnt.get(1));
       outLearnt.set(1, p);
-      analyzeBtLevel = v(p).level();
+      analyzeBtLevel = v(p).level(); //TODO wird das backtrack-level hier gesetzt?
     }
     for (int l = 0; l < analyzeToClear.size(); l++)
       seen.set(var(analyzeToClear.get(l)), false);

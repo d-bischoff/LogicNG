@@ -430,7 +430,7 @@ public abstract class MiniSatStyleSolver {
    * Picks the next branching literal.
    * @return the literal or -1 if there are no unassigned literals left
    */
-  protected int pickBranchLit() {
+  protected int pickBranchLit() { //TODO das muss/kann eine fixe Ordnung sein. Ob die Implementierung mit dem Heap dann noch die Richtige ist weiß ich nicht.
     int next = -1;
     while (next == -1 || this.vars.get(next).assignment() != Tristate.UNDEF || !this.vars.get(next).decision())
       if (this.orderHeap.empty())
