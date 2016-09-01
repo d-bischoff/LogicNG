@@ -21,10 +21,10 @@ public class DebugGraphDrawer implements GraphDrawer {
   public void sendSolution(LNGIntVector solutionForDrawer, int newLevel, LNGIntVector fulltrail, LNGIntVector traillim) {
     StringBuilder sb = new StringBuilder();
     sb.append("Solution recieved for level ").append(currentLevel).append(": ");
-    visualizeTrail(sb,solutionForDrawer,traillim);
+    visualizeTrail(sb,solutionForDrawer,traillim,fulltrail.size()-solutionForDrawer.size());
     sb.append("\n");
     sb.append("full trail: ");
-    visualizeTrail(sb,fulltrail,traillim);
+    visualizeTrail(sb,fulltrail,traillim, 0);
     sb.append("\n");
     sb.append("traillim: ").append(traillim).append("\n");
     currentLevel = newLevel;
@@ -32,10 +32,10 @@ public class DebugGraphDrawer implements GraphDrawer {
     System.out.println(sb.toString());
   }
 
-  private void visualizeTrail(StringBuilder sb, LNGIntVector vec, LNGIntVector realPos) {
+  private void visualizeTrail(StringBuilder sb, LNGIntVector vec, LNGIntVector realPos, int offset) {
     sb.append("[");
     for (int i = 0; i < vec.size(); i++) {
-      if(contains(realPos,i)){
+      if(contains(realPos,i+offset)){
         //sb.append("_");
         sb.append(vec.get(i));
         //sb.append("_");
