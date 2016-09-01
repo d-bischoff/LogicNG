@@ -18,14 +18,14 @@ public class IncrementableAssignment extends Assignment {
   private final SortedSet<Variable> variableOrdering = new TreeSet<>();
 
   /**
-   * Constructs a new empty assignment (without fast evaluation).
+   * Constructs a new noFreeVars assignment (without fast evaluation).
    */
   public IncrementableAssignment() {
     super(false);
   }
 
   /**
-   * Constructs a new empty assignment.
+   * Constructs a new noFreeVars assignment.
    *
    * @param fastEvaluable indicates whether this assignment should be evaluable fast.  If this parameter is set to
    *                      {@code true} the internal data structures will be optimized for fast evaluation but

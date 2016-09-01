@@ -71,12 +71,12 @@ public class PartialWeightedMaxSATTest {
   };
 
   private static final String[] bmoFiles = new String[]{
-          "normalized-factor-size=9-P=11-Q=283.opb.wcnf",
-          "normalized-factor-size=9-P=11-Q=53.opb.wcnf",
-          "normalized-factor-size=9-P=13-Q=179.opb.wcnf",
-          "normalized-factor-size=9-P=17-Q=347.opb.wcnf",
-          "normalized-factor-size=9-P=17-Q=487.opb.wcnf",
-          "normalized-factor-size=9-P=23-Q=293.opb.wcnf"
+          "normalized-factor-freeVars=9-P=11-Q=283.opb.wcnf",
+          "normalized-factor-freeVars=9-P=11-Q=53.opb.wcnf",
+          "normalized-factor-freeVars=9-P=13-Q=179.opb.wcnf",
+          "normalized-factor-freeVars=9-P=17-Q=347.opb.wcnf",
+          "normalized-factor-freeVars=9-P=17-Q=487.opb.wcnf",
+          "normalized-factor-freeVars=9-P=23-Q=293.opb.wcnf"
   };
 
   private static final int[] bmoResults = new int[]{

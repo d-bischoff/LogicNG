@@ -105,8 +105,8 @@ public final class LNGBoundedLongQueue {
   }
 
   /**
-   * Initializes the size of this queue.
-   * @param size the size
+   * Initializes the freeVars of this queue.
+   * @param size the freeVars
    */
   public void initSize(int size) {
     this.growTo(size);
@@ -149,8 +149,8 @@ public final class LNGBoundedLongQueue {
   }
 
   /**
-   * Grows this queue to a given size.
-   * @param size the size
+   * Grows this queue to a given freeVars.
+   * @param size the freeVars
    */
   private void growTo(int size) {
     this.elems.growTo(size, 0);

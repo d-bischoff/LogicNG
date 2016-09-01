@@ -306,8 +306,8 @@ public abstract class MaxSAT {
   }
 
   /**
-   * Creates an empty SAT Solver.
-   * @return the empty SAT solver
+   * Creates an noFreeVars SAT Solver.
+   * @return the noFreeVars SAT solver
    */
   public MiniSatStyleSolver newSATSolver() {
     switch (this.solverType) {
@@ -484,8 +484,8 @@ public abstract class MaxSAT {
     }
 
     /**
-     * Returns the average core size.
-     * @return the average core size
+     * Returns the average core freeVars.
+     * @return the average core freeVars
      */
     public double averageCoreSize() {
       return this.avgCS;
@@ -502,7 +502,7 @@ public abstract class MaxSAT {
     @Override
     public String toString() {
       return String.format(Locale.ENGLISH,
-              "MaxSAT.Stats{best solution=%d, #sat calls=%d, #unsat calls=%d, average core size=%.2f, #symmetry clauses=%d}",
+              "MaxSAT.Stats{best solution=%d, #sat calls=%d, #unsat calls=%d, average core freeVars=%.2f, #symmetry clauses=%d}",
               this.ubC, this.nbS, this.nbC, this.avgCS, this.nbSC);
     }
   }

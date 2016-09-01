@@ -44,12 +44,7 @@ import org.logicng.formulas.PBConstraint;
 import org.logicng.formulas.Variable;
 import org.logicng.handlers.ModelEnumerationHandler;
 import org.logicng.handlers.SATHandler;
-import org.logicng.solvers.sat.GlucoseConfig;
-import org.logicng.solvers.sat.GlucoseSyrup;
-import org.logicng.solvers.sat.MiniCard;
-import org.logicng.solvers.sat.MiniSat2Solver;
-import org.logicng.solvers.sat.MiniSatConfig;
-import org.logicng.solvers.sat.MiniSatStyleSolver;
+import org.logicng.solvers.sat.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -70,7 +65,7 @@ import static org.logicng.datastructures.Tristate.UNDEF;
  */
 public final class MiniSat extends SATSolver {
 
-  private enum SolverStyle {MINISAT, GLUCOSE, MINICARD}
+  private enum SolverStyle {MINISAT, GLUCOSE, MINICARD, DIAGRAMMINISAT}
 
   private final MiniSatStyleSolver solver;
   private final CCEncoder ccEncoder;
@@ -101,6 +96,9 @@ public final class MiniSat extends SATSolver {
       case MINICARD:
         this.solver = new MiniCard(miniSatConfig);
         break;
+      case DIAGRAMMINISAT:
+        this.solver = new MiniSat2SolverDiagramGeneration(miniSatConfig);
+        break;
       default:
         throw new IllegalArgumentException("Unknown solver style: " + solverStyle);
     }
@@ -109,6 +107,25 @@ public final class MiniSat extends SATSolver {
     this.validStates = new LNGIntVector();
     this.nextStateId = 0;
     this.ccEncoder = new CCEncoder(f);
+  }
+
+  /**
+   * Returns a new DiagramGeneratingMiniSat solver.
+   * @param f the formula factory
+   * @return the solver
+   */
+  public static MiniSat diagramSat(final FormulaFactory f) {
+    return new MiniSat(f, SolverStyle.DIAGRAMMINISAT, new MiniSatConfig.Builder().build(), null);
+  }
+
+  /**
+   * Returns a new DiagramGeneratingMiniSat solver with a given configuration.
+   * @param f      the formula factory
+   * @param config the configuration
+   * @return the solver
+   */
+  public static MiniSat diagramSat(final FormulaFactory f, final MiniSatConfig config) {
+    return new MiniSat(f, SolverStyle.DIAGRAMMINISAT, config, null);
   }
 
   /**

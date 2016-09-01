@@ -67,7 +67,7 @@ final class CCAMOBinary implements CCAtMostOne {
    * Constructs the binary AMO encoder.
    */
   CCAMOBinary() {
-    //intentionally left empty
+    //intentionally left noFreeVars
   }
 
   @Override

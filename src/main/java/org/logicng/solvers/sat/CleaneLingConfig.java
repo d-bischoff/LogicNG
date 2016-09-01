@@ -247,8 +247,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the backward-subsumption clause size limit.  The default value is 10,000.
-     * @param bwClauseLim the backward-subsumption clause size limit
+     * Sets the backward-subsumption clause freeVars limit.  The default value is 10,000.
+     * @param bwClauseLim the backward-subsumption clause freeVars limit
      * @return the builder
      */
     public Builder bwClauseLim(int bwClauseLim) {
@@ -337,8 +337,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the maximum antecedent size in BVE.  The default value is 1000.
-     * @param bvElimClauseLim the maximum antecedent size in BVE
+     * Sets the maximum antecedent freeVars in BVE.  The default value is 1000.
+     * @param bvElimClauseLim the maximum antecedent freeVars in BVE
      * @return the builder
      */
     public Builder bvElimClauseLim(int bvElimClauseLim) {
@@ -357,8 +357,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the glue of which size clauses are kept.  The default value is 1.
-     * @param glueKeep the glue of which size clauses are kept
+     * Sets the glue of which freeVars clauses are kept.  The default value is 1.
+     * @param glueKeep the glue of which freeVars clauses are kept
      * @return the builder
      */
     public Builder glueKeep(int glueKeep) {
@@ -468,8 +468,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the size penalty for the number of clauses.  The default value is 1 &lt;&lt; 17.
-     * @param sizePenalty the size penalty for the number of clauses
+     * Sets the freeVars penalty for the number of clauses.  The default value is 1 &lt;&lt; 17.
+     * @param sizePenalty the freeVars penalty for the number of clauses
      * @return the builder
      */
     public Builder sizePenalty(int sizePenalty) {
@@ -478,8 +478,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the maximum logarithmic size penalty.  The default value is 5.
-     * @param sizeMaxPenalty the maximum logarithmic size penalty
+     * Sets the maximum logarithmic freeVars penalty.  The default value is 5.
+     * @param sizeMaxPenalty the maximum logarithmic freeVars penalty
      * @return the builder
      */
     public Builder sizeMaxPenalty(int sizeMaxPenalty) {

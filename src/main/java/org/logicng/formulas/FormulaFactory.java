@@ -148,7 +148,7 @@ public final class FormulaFactory {
   }
 
   /**
-   * Constructor for a new formula factory with a default empty name.
+   * Constructor for a new formula factory with a default noFreeVars name.
    * You should not mix formulas from formula factories without a name, since the names of generated variables will clash.
    */
   public FormulaFactory() {

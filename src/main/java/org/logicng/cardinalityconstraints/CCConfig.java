@@ -67,7 +67,7 @@ public final class CCConfig extends Configuration {
   }
 
   /**
-   * The group size for the Bimander encoding.
+   * The group freeVars for the Bimander encoding.
    */
   public enum BIMANDER_GROUP_SIZE {
     HALF, SQRT, FIXED
@@ -171,8 +171,8 @@ public final class CCConfig extends Configuration {
     }
 
     /**
-     * Sets the group size for the bimander encoding. The default value is {@code SQRT}.
-     * @param bimanderGroupSize the bimander encoding group size
+     * Sets the group freeVars for the bimander encoding. The default value is {@code SQRT}.
+     * @param bimanderGroupSize the bimander encoding group freeVars
      * @return the builder
      */
     public Builder bimanderGroupSize(final BIMANDER_GROUP_SIZE bimanderGroupSize) {
@@ -181,9 +181,9 @@ public final class CCConfig extends Configuration {
     }
 
     /**
-     * Sets the fixed group size for the bimander encoding. The default value is 3.  This setting is only used if
-     * the bimander group size is set to {@code FIXED}.
-     * @param bimanderFixedGroupSize the bimander encoding fixed group size
+     * Sets the fixed group freeVars for the bimander encoding. The default value is 3.  This setting is only used if
+     * the bimander group freeVars is set to {@code FIXED}.
+     * @param bimanderFixedGroupSize the bimander encoding fixed group freeVars
      * @return the builder
      */
     public Builder bimanderFixedGroupSize(int bimanderFixedGroupSize) {
@@ -192,8 +192,8 @@ public final class CCConfig extends Configuration {
     }
 
     /**
-     * Sets the group size for the nesting encoding. The default value is 4.
-     * @param nestingGroupSize the group size for the nesting encoding
+     * Sets the group freeVars for the nesting encoding. The default value is 4.
+     * @param nestingGroupSize the group freeVars for the nesting encoding
      * @return the builder
      */
     public Builder nestingGroupSize(int nestingGroupSize) {
@@ -212,8 +212,8 @@ public final class CCConfig extends Configuration {
     }
 
     /**
-     * Sets the group size for the nesting encoding. The default value is 4.
-     * @param commanderGroupSize the group size for the nesting encoding
+     * Sets the group freeVars for the nesting encoding. The default value is 4.
+     * @param commanderGroupSize the group freeVars for the nesting encoding
      * @return the builder
      */
     public Builder commanderGroupSize(int commanderGroupSize) {

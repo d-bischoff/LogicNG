@@ -166,16 +166,16 @@ public final class ImmutableFormulaList implements Iterable<Formula> {
   }
 
   /**
-   * Returns the size of this formula list.
-   * @return the size of this formula list
+   * Returns the freeVars of this formula list.
+   * @return the freeVars of this formula list
    */
   public int size() {
     return this.formulas.length;
   }
 
   /**
-   * Returns {@code true} if this formula list is empty, {@code false} otherwise.
-   * @return {@code true} if this formula list is empty
+   * Returns {@code true} if this formula list is noFreeVars, {@code false} otherwise.
+   * @return {@code true} if this formula list is noFreeVars
    */
   public boolean empty() {
     return this.formulas.length == 0;

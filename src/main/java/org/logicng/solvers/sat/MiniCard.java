@@ -824,8 +824,8 @@ public final class MiniCard extends MiniSatStyleSolver {
       MSVariable var = vars.get(v);
       var.assign(Tristate.UNDEF);
       var.setReason(null);
-      if (!orderHeap.inHeap(v) && var.decision())
-        orderHeap.insert(v);
+      if (!orderHeap.isMaybeFree(v) && var.decision())
+        orderHeap.setFree(v);
     }
     trail.clear();
     trailLim.clear();

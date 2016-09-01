@@ -406,7 +406,7 @@ public final class CleaneLingMinimalisticSolver extends CleaneLingStyleSolver {
     output.println("level=" + level);
     output.println("next=" + next);
     output.println("ignore=" + ignore);
-    output.println("empty=" + empty);
+    output.println("noFreeVars=" + empty);
     output.println("vars=" + vars);
     output.println("vals=" + vals);
     output.println("phases=" + phases);

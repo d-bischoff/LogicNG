@@ -187,7 +187,7 @@ public class PureMaxSATTest {
     Assert.assertEquals(2, stats.satCalls());
     Assert.assertEquals(22.73, stats.averageCoreSize(), 0.1);
     Assert.assertEquals(9032, stats.symmetryClauses());
-    Assert.assertEquals("MaxSAT.Stats{best solution=26, #sat calls=2, #unsat calls=26, average core size=22.73, #symmetry clauses=9032}", stats.toString());
+    Assert.assertEquals("MaxSAT.Stats{best solution=26, #sat calls=2, #unsat calls=26, average core freeVars=22.73, #symmetry clauses=9032}", stats.toString());
   }
 
   @Test

@@ -889,7 +889,7 @@ public final class CleaneLingSolver extends CleaneLingStyleSolver {
 
   /**
    * Reduces simplification steps for large formulas.
-   * @return the size penalty
+   * @return the freeVars penalty
    */
   private int sizePenalty() {
     long numClauses = (long) stats.clausesIrredundant / config.sizepen;

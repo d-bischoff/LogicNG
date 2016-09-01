@@ -55,7 +55,7 @@ public final class FormulaDotFileWriter {
    * Private constructor.
    */
   private FormulaDotFileWriter() {
-    // Intentionally left empty.
+    // Intentionally left noFreeVars.
   }
 
   /**

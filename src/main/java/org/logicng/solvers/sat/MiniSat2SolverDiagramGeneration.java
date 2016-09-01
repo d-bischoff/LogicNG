@@ -49,9 +49,12 @@ import org.logicng.collections.LNGIntVector;
 import org.logicng.collections.LNGVector;
 import org.logicng.datastructures.Tristate;
 import org.logicng.handlers.SATHandler;
+import org.logicng.solvers.datastructures.FixedList;
 import org.logicng.solvers.datastructures.MSClause;
 import org.logicng.solvers.datastructures.MSVariable;
 import org.logicng.solvers.datastructures.MSWatcher;
+import org.logicng.solvers.visualization.DebugGraphDrawer;
+import org.logicng.solvers.visualization.GraphDrawer;
 
 /**
  * A solver based on MiniSAT 2.2.0.  If the incremental mode is deactivated, this version should behave exactly
@@ -61,10 +64,11 @@ import org.logicng.solvers.datastructures.MSWatcher;
  * Therefore clause deletion and simplifications are deactivated in this mode.  This mode is most efficient on small
  * to mid-freeVars industrial formulas (up to 50,000 variables, 100,000 clauses).  Whenever you have lots of small formulas
  * to solve or need the ability to add and delete formulas from the solver, we recommend to consider this mode.
+ *
  * @version 1.1
  * @since 1.0
  */
-public final class MiniSat2Solver extends MiniSatStyleSolver {
+public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
 
   private LNGIntVector unitClauses;
   private double learntsizeAdjustConfl;
@@ -72,20 +76,22 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
   private int learntsizeAdjustStartConfl;
   private double learntsizeAdjustInc;
   private double maxLearnts;
+  private GraphDrawer graphDrawer;
 
   /**
    * Constructs a new MiniSAT 2 solver with the default values for solver configuration.  By default, incremental mode
    * is activated.
    */
-  public MiniSat2Solver() {
+  public MiniSat2SolverDiagramGeneration() {
     this(new MiniSatConfig.Builder().build());
   }
 
   /**
    * Constructs a new MiniSAT 2 solver with a given solver configuration.
+   *
    * @param config the solver configuration
    */
-  public MiniSat2Solver(final MiniSatConfig config) {
+  public MiniSat2SolverDiagramGeneration(final MiniSatConfig config) {
     super(config);
     this.initializeMiniSAT();
   }
@@ -95,6 +101,8 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
    */
   private void initializeMiniSAT() {
     unitClauses = new LNGIntVector();
+    this.orderHeap = new FixedList();
+    this.graphDrawer = new DebugGraphDrawer();
     this.learntsizeAdjustConfl = 0;
     this.learntsizeAdjustCnt = 0;
     this.learntsizeAdjustStartConfl = 100;
@@ -158,6 +166,13 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
     conflict.clear();
     if (!ok)
       return Tristate.FALSE;
+    // build order
+    LNGIntVector ordering = new LNGIntVector();
+    for (int i = 0; i < vars.size(); i++) {
+      ordering.push(i);
+    }
+    orderHeap.initialize(ordering);
+    // ---------------------
     learntsizeAdjustConfl = learntsizeAdjustStartConfl;
     learntsizeAdjustCnt = (int) learntsizeAdjustConfl;
     maxLearnts = clauses.size() * learntsizeFactor;
@@ -193,6 +208,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
    * structures.  The array has length 5 and has the following layout:
    * <p>
    * {@code | current solver state | #vars | #clauses | #learnt clauses | #unit clauses |}
+   *
    * @return the current solver state
    */
   @Override
@@ -401,6 +417,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
       qhead = trailLim.get(level);
       trail.removeElements(trail.size() - trailLim.get(level));
       trailLim.removeElements(trailLim.size() - level);
+      graphDrawer.solverBacktrackedToLevel(level - 1);
     }
   }
 
@@ -469,6 +486,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
 
   /**
    * The main search procedure of the CDCL algorithm.
+   *
    * @param nofConflicts the number of conflicts till the next restart
    * @return a {@link Tristate} representing the result.  {@code FALSE} if the formula is UNSAT, {@code TRUE} if the
    * formula is SAT, and {@code UNDEF} if the state is not known yet (restart) or the handler canceled the computation
@@ -510,10 +528,10 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
           maxLearnts *= learntsizeInc;
         }
       } else {
-        if (nofConflicts >= 0 && conflictC >= nofConflicts) {
+        /*if (nofConflicts >= 0 && conflictC >= nofConflicts) {
           cancelUntil(0);
           return Tristate.UNDEF;
-        }
+        }*/
         if (!incremental) {
           if (decisionLevel() == 0 && !simplify())
             return Tristate.FALSE;
@@ -535,8 +553,44 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
         }
         if (next == LIT_UNDEF) {
           next = pickBranchLit();
-          if (next == LIT_UNDEF)
-            return Tristate.TRUE;
+          if (next == LIT_UNDEF) {
+            LNGIntVector solutionForDrawer = new LNGIntVector();
+            for (int i = trailLim.get(graphDrawer.getCurrentLevel()); i < trail.size(); i++)
+              solutionForDrawer.push(trail.get(i));
+            graphDrawer.sendSolution(solutionForDrawer, trailLim.size()-1, trail, trailLim);
+            if (decisionLevel() == 0) {
+              //System.out.print("we are on decision level 0 and the units that let to a sat are:");
+              //for (int i = 0; i < trail.size(); i++)
+              //System.out.print(nameForIdx(var(trail.get(i))) + ",");
+              //System.out.println("\ntrail: " + trail);
+              return Tristate.TRUE;
+            } else {
+              next = not(trail.get(trailLim.back()));
+              if (decisionLevel() == 1) {
+                unitClauses.push(next);
+              } else {
+                LNGIntVector blockingIntVector = new LNGIntVector();
+                //System.out.print("Solution found. Blocking clause: ");
+                for (int i = 0; i < trailLim.size(); i++) {
+                  int l = trail.get(trailLim.get(i));
+                  blockingIntVector.push(not(l));
+                  //System.out.print((sign(not(l)) ? "-" : "") + nameForIdx(var(l)));
+                  //if (i != trailLim.size() - 1) {
+                  //  System.out.print(", ");
+                  //}
+                }
+                //System.out.println("\n");
+                //----------------------------------------
+                MSClause block = new MSClause(blockingIntVector, false);
+                clauses.push(block);
+                attachClause(block);
+              }
+              //System.out.println("Trail: " + trail + "\n" + "Traillim: " + trailLim);
+              cancelUntil(trailLim.size() - 1); //revert assignments up until the last decision
+              uncheckedEnqueue(next, null); //set alternative of last decision as the new way to go
+              continue;
+            }
+          }
         }
         trailLim.push(trail.size());
         uncheckedEnqueue(next, null);
@@ -547,8 +601,10 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
   /**
    * Analyzes a given conflict clause wrt. the current solver state.  A 1-UIP clause is created during this procedure
    * and the new backtracking level is stored in the solver state.
+   *
    * @param conflictClause the conflict clause to start the resolution analysis with
    * @param outLearnt      the vector where the new learnt 1-UIP clause is stored
+   *                       TODO also die 1UIP sollten wir berechnen, aber backtracken sollten wir nur bis zur letzten decision. Wir müssen eh alles explorieren und wenn wir schonmal da sind machen wir das auch gleich.
    */
   private void analyze(final MSClause conflictClause, final LNGIntVector outLearnt) {
     MSClause c = conflictClause;
@@ -558,6 +614,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
     int index = trail.size() - 1;
     do {
       assert c != null;
+      assert false;
       if (!incremental && c.learnt())
         claBumpActivity(c);
       for (int j = (p == LIT_UNDEF) ? 0 : 1; j < c.size(); j++) {
@@ -583,6 +640,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
 
   /**
    * Minimizes a given learnt clause depending on the minimization method of the solver configuration.
+   *
    * @param outLearnt the learnt clause which should be minimized
    */
   private void simplifyClause(final LNGIntVector outLearnt) {
@@ -621,7 +679,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
       int p = outLearnt.get(max);
       outLearnt.set(max, outLearnt.get(1));
       outLearnt.set(1, p);
-      analyzeBtLevel = v(p).level();
+      analyzeBtLevel = trailLim.size() - 1; // v(p).level();
     }
     for (int l = 0; l < analyzeToClear.size(); l++)
       seen.set(var(analyzeToClear.get(l)), false);
@@ -645,6 +703,7 @@ public final class MiniSat2Solver extends MiniSatStyleSolver {
 
   /**
    * Performs a simple removal of clauses used during the loading of an older state.
+   *
    * @param c the clause to remove
    */
   private void simpleRemoveClause(final MSClause c) {

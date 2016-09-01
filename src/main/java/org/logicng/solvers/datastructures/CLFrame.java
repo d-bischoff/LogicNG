@@ -75,7 +75,7 @@ public final class CLFrame {
   }
 
   /**
-   * Constructs a new empty frame at level 0.
+   * Constructs a new noFreeVars frame at level 0.
    */
   public CLFrame() {
     this(0, 0, 0);

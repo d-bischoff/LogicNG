@@ -44,7 +44,7 @@ public class Substitution {
   protected final Map<Variable, Formula> subst;
 
   /**
-   * Constructs a new empty substitution.
+   * Constructs a new noFreeVars substitution.
    */
   public Substitution() {
     this.subst = new HashMap<>();

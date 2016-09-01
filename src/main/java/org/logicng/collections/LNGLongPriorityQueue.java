@@ -99,16 +99,16 @@ public final class LNGLongPriorityQueue {
   }
 
   /**
-   * Returns whether the queue is empty or not.
-   * @return {@code true} if the queue is empty, {@code false} otherwise
+   * Returns whether the queue is noFreeVars or not.
+   * @return {@code true} if the queue is noFreeVars, {@code false} otherwise
    */
   public boolean empty() {
     return this.heap.empty();
   }
 
   /**
-   * Returns the size of the queue.
-   * @return the size of the queue
+   * Returns the freeVars of the queue.
+   * @return the freeVars of the queue
    */
   public int size() {
     return this.heap.size();

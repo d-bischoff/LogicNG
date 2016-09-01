@@ -49,10 +49,7 @@ import org.logicng.collections.LNGIntVector;
 import org.logicng.collections.LNGVector;
 import org.logicng.datastructures.Tristate;
 import org.logicng.handlers.SATHandler;
-import org.logicng.solvers.datastructures.LNGHeap;
-import org.logicng.solvers.datastructures.MSClause;
-import org.logicng.solvers.datastructures.MSVariable;
-import org.logicng.solvers.datastructures.MSWatcher;
+import org.logicng.solvers.datastructures.*;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -79,7 +76,7 @@ public abstract class MiniSatStyleSolver {
   protected LNGVector<MSClause> learnts;
   protected LNGVector<LNGVector<MSWatcher>> watches;
   protected LNGVector<MSVariable> vars;
-  protected LNGHeap orderHeap;
+  protected VariableOrdering orderHeap;
   protected LNGIntVector trail;
   protected LNGIntVector trailLim;
   protected LNGBooleanVector model;
@@ -347,7 +344,7 @@ public abstract class MiniSatStyleSolver {
   public abstract void reset();
 
   /**
-   * Returns the current model of the solver or an empty vector if there is none.
+   * Returns the current model of the solver or an noFreeVars vector if there is none.
    * @return the current model of the solver
    */
   public LNGBooleanVector model() {
@@ -355,7 +352,7 @@ public abstract class MiniSatStyleSolver {
   }
 
   /**
-   * Returns the current conflict of the solver or an empty vector if there is none.
+   * Returns the current conflict of the solver or an noFreeVars vector if there is none.
    * @return the current conflict of the solver
    */
   public LNGIntVector conflict() {
@@ -422,8 +419,8 @@ public abstract class MiniSatStyleSolver {
    * @param x the variable index
    */
   protected void insertVarOrder(int x) {
-    if (!this.orderHeap.inHeap(x) && this.vars.get(x).decision())
-      this.orderHeap.insert(x);
+    if (!this.orderHeap.isMaybeFree(x) && this.vars.get(x).decision())
+      this.orderHeap.setFree(x);
   }
 
   /**
@@ -433,10 +430,10 @@ public abstract class MiniSatStyleSolver {
   protected int pickBranchLit() { //TODO das muss/kann eine fixe Ordnung sein. Ob die Implementierung mit dem Heap dann noch die Richtige ist weiß ich nicht.
     int next = -1;
     while (next == -1 || this.vars.get(next).assignment() != Tristate.UNDEF || !this.vars.get(next).decision())
-      if (this.orderHeap.empty())
+      if (this.orderHeap.noFreeVars())
         return -1;
       else
-        next = this.orderHeap.removeMin();
+        next = this.orderHeap.getNextFreeVariableMarkAssigned();
     return mkLit(next, this.vars.get(next).polarity());
   }
 
@@ -468,8 +465,8 @@ public abstract class MiniSatStyleSolver {
         variable.rescaleActivity();
       this.varInc *= 1e-100;
     }
-    if (this.orderHeap.inHeap(v))
-      this.orderHeap.decrease(v);
+    if (this.orderHeap.isMaybeFree(v))
+      this.orderHeap.accelerate(v);
   }
 
   /**
@@ -480,7 +477,7 @@ public abstract class MiniSatStyleSolver {
     for (int v = 0; v < this.nVars(); v++)
       if (this.vars.get(v).decision() && this.vars.get(v).assignment() == Tristate.UNDEF)
         vs.push(v);
-    this.orderHeap.build(vs);
+    this.orderHeap.initialize(vs);
   }
 
   /**
@@ -602,7 +599,7 @@ public abstract class MiniSatStyleSolver {
     sb.append("#learnts      ").append(learnts.size()).append("\n");
     sb.append("#watches      ").append(watches.size()).append("\n");
     sb.append("#vars         ").append(vars.size()).append("\n");
-    sb.append("#orderheap    ").append(orderHeap.size()).append("\n");
+    //sb.append("#orderheap    ").append(orderHeap.freeVars()).append("\n");
     sb.append("#trail        ").append(trail.size()).append("\n");
     sb.append("#trailLim     ").append(trailLim.size()).append("\n");
 

@@ -287,7 +287,7 @@ public class CCEncoder {
               groupSize = (int) Math.sqrt(vars.length);
               break;
             default:
-              throw new IllegalStateException("Unkown bimander group size: " + this.config().bimanderGroupSize);
+              throw new IllegalStateException("Unkown bimander group freeVars: " + this.config().bimanderGroupSize);
           }
           this.amoBimander = new CCAMOBimander(groupSize);
         }

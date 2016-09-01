@@ -72,7 +72,7 @@ public final class MUSGeneration {
    */
   public UNSATCore computeMUS(final List<Proposition> propositions, final FormulaFactory f, final MUSConfig config) {
     if (propositions.isEmpty())
-      throw new IllegalArgumentException("Cannot generate a MUS for an empty list of propositions");
+      throw new IllegalArgumentException("Cannot generate a MUS for an noFreeVars list of propositions");
     switch (config.algorithm) {
       case PLAIN_INSERTION:
         return insertion.computeMUS(propositions, f, config);

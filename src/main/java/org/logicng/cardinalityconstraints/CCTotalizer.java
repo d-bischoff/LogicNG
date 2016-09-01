@@ -70,7 +70,7 @@ final class CCTotalizer {
    * Constructs a new totalizer.
    */
   CCTotalizer() {
-    // intentionally left empty
+    // intentionally left noFreeVars
   }
 
   /**

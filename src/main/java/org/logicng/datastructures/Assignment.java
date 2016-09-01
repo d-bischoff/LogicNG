@@ -60,14 +60,14 @@ public class Assignment {
   protected boolean fastEvaluable;
 
   /**
-   * Constructs a new empty assignment (without fast evaluation).
+   * Constructs a new noFreeVars assignment (without fast evaluation).
    */
   public Assignment() {
     this(false);
   }
 
   /**
-   * Constructs a new empty assignment.
+   * Constructs a new noFreeVars assignment.
    * @param fastEvaluable indicates whether this assignment should be evaluable fast.  If this parameter is set to
    *                      {@code true} the internal data structures will be optimized for fast evaluation but
    *                      creation of the object or adding literals can take longer.

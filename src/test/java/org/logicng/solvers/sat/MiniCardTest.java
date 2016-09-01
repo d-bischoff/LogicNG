@@ -128,7 +128,7 @@ public class MiniCardTest {
             "#learnts      0\n" +
             "#watches      8\n" +
             "#vars         4\n" +
-            "#orderheap    4\n" +
+            //"#orderheap    4\n" +
             "#trail        0\n" +
             "#trailLim     0\n" +
             "model         []\n" +

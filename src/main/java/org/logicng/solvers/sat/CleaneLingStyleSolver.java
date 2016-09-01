@@ -186,7 +186,7 @@ public abstract class CleaneLingStyleSolver {
   public abstract Tristate solve(final SATHandler handler);
 
   /**
-   * Returns the current model of the solver or an empty vector if there is none.
+   * Returns the current model of the solver or an noFreeVars vector if there is none.
    * @return the current model of the solver
    */
   public LNGBooleanVector model() {
