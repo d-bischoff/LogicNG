@@ -11,7 +11,7 @@ import org.logicng.collections.LNGIntVector;
 public interface GraphDrawer {
   int getCurrentLevel();
 
-  void sendSolution(LNGIntVector solutionForDrawer, int newLevel, LNGIntVector fulltrail, LNGIntVector traillim);
+  int sendSolution(LNGIntVector solutionForDrawer, int newLevel, LNGIntVector fulltrail, LNGIntVector traillim);
 
   void solverBacktrackedToLevel(int level);
 }

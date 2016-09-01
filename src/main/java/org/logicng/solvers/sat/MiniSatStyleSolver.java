@@ -434,7 +434,7 @@ public abstract class MiniSatStyleSolver {
         return -1;
       else
         next = this.orderHeap.getNextFreeVariableMarkAssigned();
-    return mkLit(next, this.vars.get(next).polarity());
+    return mkLit(next, true);
   }
 
   /**

@@ -18,47 +18,49 @@ public class DebugGraphDrawer implements GraphDrawer {
   }
 
   @Override
-  public void sendSolution(LNGIntVector solutionForDrawer, int newLevel, LNGIntVector fulltrail, LNGIntVector traillim) {
+  public int sendSolution(LNGIntVector solutionForDrawer, int newLevel, LNGIntVector fulltrail, LNGIntVector traillim) {
     StringBuilder sb = new StringBuilder();
     sb.append("Solution recieved for level ").append(currentLevel).append(": ");
-    visualizeTrail(sb,solutionForDrawer,traillim,fulltrail.size()-solutionForDrawer.size());
+    visualizeTrail(sb, solutionForDrawer, traillim, fulltrail.size() - solutionForDrawer.size());
     sb.append("\n");
     sb.append("full trail: ");
-    visualizeTrail(sb,fulltrail,traillim, 0);
+    visualizeTrail(sb, fulltrail, traillim, 0);
     sb.append("\n");
     sb.append("traillim: ").append(traillim).append("\n");
     currentLevel = newLevel;
     sb.append("new level :").append(currentLevel).append("\n");
     System.out.println(sb.toString());
+    while (currentLevel >= 0 && (fulltrail.get(traillim.get(currentLevel)) & 1) == 0)
+      currentLevel--;
+    return currentLevel;
   }
 
   private void visualizeTrail(StringBuilder sb, LNGIntVector vec, LNGIntVector realPos, int offset) {
     sb.append("[");
     for (int i = 0; i < vec.size(); i++) {
-      if(contains(realPos,i+offset)){
+      if (contains(realPos, i + offset)) {
         //sb.append("_");
         sb.append(vec.get(i));
         //sb.append("_");
-      }else
-      {
+      } else {
         sb.append("(").append(vec.get(i)).append(")");
       }
-      if (i == vec.size()-1) {
+      if (i == vec.size() - 1) {
         sb.append("]");
       } else sb.append(",");
     }
   }
 
   private boolean contains(LNGIntVector vector, int elem) {
-    for(int i = 0; i<vector.size();i++)
-      if(vector.get(i)==elem)
+    for (int i = 0; i < vector.size(); i++)
+      if (vector.get(i) == elem)
         return true;
     return false;
   }
 
   @Override
   public void solverBacktrackedToLevel(int level) {
-    System.out.println("Solver backtracked to level: " + level+"\n");
+    System.out.println("Solver backtracked to level: " + level + "\n");
     currentLevel = Math.min(currentLevel, level);
   }
 }

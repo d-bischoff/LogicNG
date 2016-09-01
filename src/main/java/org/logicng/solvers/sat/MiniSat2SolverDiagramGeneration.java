@@ -417,7 +417,7 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
       qhead = trailLim.get(level);
       trail.removeElements(trail.size() - trailLim.get(level));
       trailLim.removeElements(trailLim.size() - level);
-      graphDrawer.solverBacktrackedToLevel(level - 1);
+      graphDrawer.solverBacktrackedToLevel(level);
     }
   }
 
@@ -557,15 +557,17 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
             LNGIntVector solutionForDrawer = new LNGIntVector();
             for (int i = trailLim.get(graphDrawer.getCurrentLevel()); i < trail.size(); i++)
               solutionForDrawer.push(trail.get(i));
-            graphDrawer.sendSolution(solutionForDrawer, trailLim.size()-1, trail, trailLim);
-            if (decisionLevel() == 0) {
+            final int backtrackLevel = graphDrawer.sendSolution(solutionForDrawer, trailLim.size()-1, trail, trailLim);
+            System.out.println(backtrackLevel);
+            if (backtrackLevel == -1) {
               //System.out.print("we are on decision level 0 and the units that let to a sat are:");
               //for (int i = 0; i < trail.size(); i++)
               //System.out.print(nameForIdx(var(trail.get(i))) + ",");
               //System.out.println("\ntrail: " + trail);
               return Tristate.TRUE;
             } else {
-              next = not(trail.get(trailLim.back()));
+              next = not(trail.get(trailLim.get(backtrackLevel)));
+              assert !sign(next);
               if (decisionLevel() == 1) {
                 unitClauses.push(next);
               } else {
@@ -586,7 +588,8 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
                 attachClause(block);
               }
               //System.out.println("Trail: " + trail + "\n" + "Traillim: " + trailLim);
-              cancelUntil(trailLim.size() - 1); //revert assignments up until the last decision
+              cancelUntil(backtrackLevel); //revert assignments up until the last decision
+              trailLim.push(trail.size());
               uncheckedEnqueue(next, null); //set alternative of last decision as the new way to go
               continue;
             }
