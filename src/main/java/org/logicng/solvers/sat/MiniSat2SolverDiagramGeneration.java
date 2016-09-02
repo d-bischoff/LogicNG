@@ -53,8 +53,9 @@ import org.logicng.solvers.datastructures.FixedList;
 import org.logicng.solvers.datastructures.MSClause;
 import org.logicng.solvers.datastructures.MSVariable;
 import org.logicng.solvers.datastructures.MSWatcher;
-import org.logicng.solvers.visualization.DebugGraphDrawer;
 import org.logicng.solvers.visualization.GraphDrawer;
+import org.logicng.solvers.visualization.LEMTBDDGraphDrawer;
+import org.symcom.bischoff.zslemtbdd.ZSLEMTBDDNode;
 
 /**
  * A solver based on MiniSAT 2.2.0.  If the incremental mode is deactivated, this version should behave exactly
@@ -102,7 +103,7 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
   private void initializeMiniSAT() {
     unitClauses = new LNGIntVector();
     this.orderHeap = new FixedList();
-    this.graphDrawer = new DebugGraphDrawer();
+    this.graphDrawer = new LEMTBDDGraphDrawer(idx2name,vars);
     this.learntsizeAdjustConfl = 0;
     this.learntsizeAdjustCnt = 0;
     this.learntsizeAdjustStartConfl = 100;
@@ -121,6 +122,10 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
     newVar.setDecision(dvar);
     insertVarOrder(v);
     return v;
+  }
+
+  public ZSLEMTBDDNode getZSLEMTBDDNodeRepresentation(){
+    return graphDrawer.getResult();
   }
 
   @Override
@@ -558,12 +563,8 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
             for (int i = trailLim.get(graphDrawer.getCurrentLevel()); i < trail.size(); i++)
               solutionForDrawer.push(trail.get(i));
             final int backtrackLevel = graphDrawer.sendSolution(solutionForDrawer, trailLim.size()-1, trail, trailLim);
-            System.out.println(backtrackLevel);
+            //System.out.println(backtrackLevel);
             if (backtrackLevel == -1) {
-              //System.out.print("we are on decision level 0 and the units that let to a sat are:");
-              //for (int i = 0; i < trail.size(); i++)
-              //System.out.print(nameForIdx(var(trail.get(i))) + ",");
-              //System.out.println("\ntrail: " + trail);
               return Tristate.TRUE;
             } else {
               next = not(trail.get(trailLim.get(backtrackLevel)));
@@ -617,7 +618,6 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
     int index = trail.size() - 1;
     do {
       assert c != null;
-      assert false;
       if (!incremental && c.learnt())
         claBumpActivity(c);
       for (int j = (p == LIT_UNDEF) ? 0 : 1; j < c.size(); j++) {

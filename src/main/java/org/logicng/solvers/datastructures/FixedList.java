@@ -37,7 +37,8 @@ public class FixedList implements VariableOrdering {
 
   @Override
   public void accelerate(int n) {
-    throw new UnsupportedOperationException("acceleration is not supported for fixed lists.");
+    return;
+    //throw new UnsupportedOperationException("acceleration is not supported for fixed lists.");
   }
 
   @Override
@@ -60,7 +61,6 @@ public class FixedList implements VariableOrdering {
     entryToIndex = new LNGIntVector(ns);
     indexToEntry = new LNGIntVector(ns.size(),-1);
     for(int i = 0; i < ns.size(); i++){
-      //entryToIndex.set(i,ns.get(i));
       indexToEntry.set(ns.get(i),i);
     }
   }

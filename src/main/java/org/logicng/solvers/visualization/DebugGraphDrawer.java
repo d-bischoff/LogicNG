@@ -1,6 +1,7 @@
 package org.logicng.solvers.visualization;
 
 import org.logicng.collections.LNGIntVector;
+import org.symcom.bischoff.zslemtbdd.ZSLEMTBDDNode;
 
 /**
  * @author Daniel Bischoff
@@ -11,6 +12,11 @@ import org.logicng.collections.LNGIntVector;
 public class DebugGraphDrawer implements GraphDrawer {
 
   private int currentLevel;
+
+  @Override
+  public ZSLEMTBDDNode getResult() {
+        throw new UnsupportedOperationException("This is just a dummy for debuging. It doesn't create solutions.");
+  }
 
   @Override
   public int getCurrentLevel() {
