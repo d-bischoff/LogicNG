@@ -97,7 +97,7 @@ public final class MiniSat extends SATSolver {
         this.solver = new MiniCard(miniSatConfig);
         break;
       case DIAGRAMMINISAT:
-        this.solver = new MiniSat2SolverDiagramGeneration(miniSatConfig);
+        this.solver = new MiniSat2SolverDiagramGeneration(miniSatConfig,f);
         break;
       default:
         throw new IllegalArgumentException("Unknown solver style: " + solverStyle);

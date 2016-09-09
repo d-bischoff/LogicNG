@@ -48,6 +48,8 @@ import org.logicng.collections.LNGBooleanVector;
 import org.logicng.collections.LNGIntVector;
 import org.logicng.collections.LNGVector;
 import org.logicng.datastructures.Tristate;
+import org.logicng.formulas.FormulaFactory;
+import org.logicng.formulas.Variable;
 import org.logicng.handlers.SATHandler;
 import org.logicng.solvers.datastructures.FixedList;
 import org.logicng.solvers.datastructures.MSClause;
@@ -71,6 +73,7 @@ import org.symcom.bischoff.zslemtbdd.ZSLEMTBDDNode;
  */
 public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
 
+  private FormulaFactory f;
   private LNGIntVector unitClauses;
   private double learntsizeAdjustConfl;
   private int learntsizeAdjustCnt;
@@ -83,8 +86,8 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
    * Constructs a new MiniSAT 2 solver with the default values for solver configuration.  By default, incremental mode
    * is activated.
    */
-  public MiniSat2SolverDiagramGeneration() {
-    this(new MiniSatConfig.Builder().build());
+  public MiniSat2SolverDiagramGeneration(FormulaFactory f) {
+    this(new MiniSatConfig.Builder().build(), f);
   }
 
   /**
@@ -92,8 +95,10 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
    *
    * @param config the solver configuration
    */
-  public MiniSat2SolverDiagramGeneration(final MiniSatConfig config) {
+  public MiniSat2SolverDiagramGeneration(final MiniSatConfig config, FormulaFactory f) {
     super(config);
+    assert (f != null);
+    this.f = f;
     this.initializeMiniSAT();
   }
 
@@ -102,8 +107,8 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
    */
   private void initializeMiniSAT() {
     unitClauses = new LNGIntVector();
-    this.orderHeap = new FixedList();
-    this.graphDrawer = new LEMTBDDGraphDrawer(idx2name,vars);
+    this.orderHeap = new FixedList(idx2name);
+    this.graphDrawer = new LEMTBDDGraphDrawer(idx2name, vars, this.f);
     this.learntsizeAdjustConfl = 0;
     this.learntsizeAdjustCnt = 0;
     this.learntsizeAdjustStartConfl = 100;
@@ -124,7 +129,7 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
     return v;
   }
 
-  public ZSLEMTBDDNode getZSLEMTBDDNodeRepresentation(){
+  public ZSLEMTBDDNode getZSLEMTBDDNodeRepresentation() {
     return graphDrawer.getResult();
   }
 
@@ -162,6 +167,23 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
     return true;
   }
 
+  public void setOrdering(LNGVector<Variable> ord) {
+    orderHeap.clear();
+    LNGIntVector ordTransformed = new LNGIntVector(ord.size());
+    for (int i = 0; i < ord.size(); i++) {
+      String varName = ord.get(i).name();
+      int id = idxForName(varName);
+      assert id != -1;
+      ordTransformed.push(id);
+    }
+    for (int i = 0; i < idx2name.size(); i++) {
+      String varName = idx2name.get(i);
+      if (varName.startsWith("@RESERVED_CNF"))
+        ordTransformed.push(i);
+    }
+    orderHeap.initialize(ordTransformed);
+  }
+
   @Override
   public Tristate solve(final SATHandler handler) {
     this.handler = handler;
@@ -172,11 +194,11 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
     if (!ok)
       return Tristate.FALSE;
     // build order
-    LNGIntVector ordering = new LNGIntVector();
-    for (int i = 0; i < vars.size(); i++) {
-      ordering.push(i);
-    }
-    orderHeap.initialize(ordering);
+    //LNGIntVector ordering = new LNGIntVector();
+    //for (int i = 0; i < vars.size(); i++) {
+    //  ordering.push(i);
+    //}
+    //orderHeap.initialize(ordering);
     // ---------------------
     learntsizeAdjustConfl = learntsizeAdjustStartConfl;
     learntsizeAdjustCnt = (int) learntsizeAdjustConfl;
@@ -498,8 +520,7 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
    */
   private Tristate search(int nofConflicts) {
     if (!ok)
-      return Tristate.FALSE;
-    int conflictC = 0;
+      return Tristate.FALSE; //todo maybe wrong?!
     while (true) {
       MSClause confl = propagate();
       if (confl != null) {
@@ -507,7 +528,6 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
           canceledByHandler = true;
           return Tristate.UNDEF;
         }
-        conflictC++;
         if (decisionLevel() == 0)
           return Tristate.FALSE;
         LNGIntVector learntClause = new LNGIntVector();
@@ -533,13 +553,9 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
           maxLearnts *= learntsizeInc;
         }
       } else {
-        /*if (nofConflicts >= 0 && conflictC >= nofConflicts) {
-          cancelUntil(0);
-          return Tristate.UNDEF;
-        }*/
         if (!incremental) {
           if (decisionLevel() == 0 && !simplify())
-            return Tristate.FALSE;
+            return Tristate.FALSE; //todo maybe wrong?!
           if (learnts.size() - nAssigns() >= maxLearnts)
             reduceDB();
         }
@@ -550,7 +566,8 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
             trailLim.push(trail.size());
           } else if (value(p) == Tristate.FALSE) {
             analyzeFinal(not(p), conflict);
-            return Tristate.FALSE;
+            cancelUntil(0);
+            return Tristate.FALSE; //todo maybe wrong?!
           } else {
             next = p;
             break;
@@ -560,11 +577,15 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
           next = pickBranchLit();
           if (next == LIT_UNDEF) {
             LNGIntVector solutionForDrawer = new LNGIntVector();
-            for (int i = trailLim.get(graphDrawer.getCurrentLevel()); i < trail.size(); i++)
-              solutionForDrawer.push(trail.get(i));
-            final int backtrackLevel = graphDrawer.sendSolution(solutionForDrawer, trailLim.size()-1, trail, trailLim);
+            if (graphDrawer.getCurrentLevel() <= 0)
+              solutionForDrawer = trail;
+            else
+              for (int i = trailLim.get(graphDrawer.getCurrentLevel()); i < trail.size(); i++)
+                solutionForDrawer.push(trail.get(i));
+            final int backtrackLevel = graphDrawer.sendSolution(solutionForDrawer, trailLim.size() - 1, trail, trailLim);
             //System.out.println(backtrackLevel);
             if (backtrackLevel == -1) {
+              cancelUntil(0);
               return Tristate.TRUE;
             } else {
               next = not(trail.get(trailLim.get(backtrackLevel)));
@@ -574,7 +595,7 @@ public final class MiniSat2SolverDiagramGeneration extends MiniSatStyleSolver {
               } else {
                 LNGIntVector blockingIntVector = new LNGIntVector();
                 //System.out.print("Solution found. Blocking clause: ");
-                for (int i = 0; i < trailLim.size(); i++) {
+                for (int i = trailLim.size() - 1; i >= 0; i--) {
                   int l = trail.get(trailLim.get(i));
                   blockingIntVector.push(not(l));
                   //System.out.print((sign(not(l)) ? "-" : "") + nameForIdx(var(l)));
