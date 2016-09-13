@@ -128,7 +128,8 @@ public class LEMTBDDGraphDrawer implements GraphDrawer {
           currentLevel = -1;
           return;
         }
-        assert parentsize == 1;         pointer = pointer.getParents().get(0);
+        assert parentsize == 1;
+        pointer = pointer.getParents().iterator().next();
         currentLevel--;
       } else {
         return;
@@ -148,7 +149,7 @@ public class LEMTBDDGraphDrawer implements GraphDrawer {
       else if (pointer.hasHighChild())
         pointer.setLowChild(mgr.negTerminal);
       assert pointer.getParents().size() == 1;
-      pointer = pointer.getParents().get(0);
+      pointer = pointer.getParents().iterator().next();
     }
 
     currentLevel = Math.min(currentLevel, level);
