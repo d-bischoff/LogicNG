@@ -26,7 +26,7 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-/**
+/*
  * PBLib       -- Copyright (c) 2012-2013  Peter Steinke
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
