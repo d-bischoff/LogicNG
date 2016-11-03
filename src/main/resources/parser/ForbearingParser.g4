@@ -1,7 +1,7 @@
 grammar ForbearingParser;
 
 @parser::header {
-package org.symcom.svm_proto.model.logic.parsers;
+package org.logicng.io.parsers;
 
 import java.util.LinkedHashSet;
 import org.logicng.formulas.*;
@@ -16,7 +16,7 @@ public void setFormulaFactory(final FormulaFactory f) {
 }
 
 @lexer::header {
-package org.symcom.svm_proto.model.logic.parsers;
+package org.logicng.io.parsers;
 
 import org.logicng.formulas.FormulaFactory;
 }
