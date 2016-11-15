@@ -35,25 +35,12 @@ import org.logicng.collections.LNGIntVector;
 import org.logicng.datastructures.Assignment;
 import org.logicng.datastructures.EncodingResult;
 import org.logicng.datastructures.Tristate;
-import org.logicng.formulas.CType;
-import org.logicng.formulas.FType;
-import org.logicng.formulas.Formula;
-import org.logicng.formulas.FormulaFactory;
-import org.logicng.formulas.Literal;
-import org.logicng.formulas.PBConstraint;
-import org.logicng.formulas.Variable;
+import org.logicng.formulas.*;
 import org.logicng.handlers.ModelEnumerationHandler;
 import org.logicng.handlers.SATHandler;
 import org.logicng.solvers.sat.*;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.logicng.datastructures.Tristate.TRUE;
 import static org.logicng.datastructures.Tristate.UNDEF;
@@ -65,8 +52,6 @@ import static org.logicng.datastructures.Tristate.UNDEF;
  */
 public final class MiniSat extends SATSolver {
 
-  private enum SolverStyle {MINISAT, GLUCOSE, MINICARD, DIAGRAMMINISAT}
-
   private final MiniSatStyleSolver solver;
   private final CCEncoder ccEncoder;
   private final SolverStyle style;
@@ -74,7 +59,6 @@ public final class MiniSat extends SATSolver {
   private boolean incremental;
   private boolean initialPhase;
   private int nextStateId;
-
   /**
    * Constructs a new SAT solver instance.
    * @param f           the formula factory
@@ -96,9 +80,6 @@ public final class MiniSat extends SATSolver {
       case MINICARD:
         this.solver = new MiniCard(miniSatConfig);
         break;
-      case DIAGRAMMINISAT:
-        this.solver = new MiniSat2SolverDiagramGeneration(miniSatConfig,f);
-        break;
       default:
         throw new IllegalArgumentException("Unknown solver style: " + solverStyle);
     }
@@ -107,25 +88,6 @@ public final class MiniSat extends SATSolver {
     this.validStates = new LNGIntVector();
     this.nextStateId = 0;
     this.ccEncoder = new CCEncoder(f);
-  }
-
-  /**
-   * Returns a new DiagramGeneratingMiniSat solver.
-   * @param f the formula factory
-   * @return the solver
-   */
-  public static MiniSat diagramSat(final FormulaFactory f) {
-    return new MiniSat(f, SolverStyle.DIAGRAMMINISAT, new MiniSatConfig.Builder().build(), null);
-  }
-
-  /**
-   * Returns a new DiagramGeneratingMiniSat solver with a given configuration.
-   * @param f      the formula factory
-   * @param config the configuration
-   * @return the solver
-   */
-  public static MiniSat diagramSat(final FormulaFactory f, final MiniSatConfig config) {
-    return new MiniSat(f, SolverStyle.DIAGRAMMINISAT, config, null);
   }
 
   /**
@@ -187,6 +149,27 @@ public final class MiniSat extends SATSolver {
     return new MiniSat(f, SolverStyle.MINICARD, config, null);
   }
 
+  /**
+   * Returns the underlying core solver.
+   * <p>
+   * ATTENTION: by influencing the underlying solver directly, you can mess things up completely!  You should really
+   * know, what you are doing.
+   *
+   * @return the underlying core solver
+   */
+  public MiniSatStyleSolver underlyingSolver() {
+    return this.solver;
+  }
+
+  /**
+   * Returns the initial phase of literals of this solver.
+   *
+   * @return the initial phase of literals of this solver
+   */
+  public boolean initialPhase() {
+    return this.initialPhase;
+  }
+
   @Override
   public void add(final Formula formula) {
     if (formula.type() == FType.PBC) {
@@ -214,12 +197,19 @@ public final class MiniSat extends SATSolver {
   }
 
   @Override
+  public String toString() {
+    return String.format("MiniSat{result=%s, incremental=%s}", this.result, this.incremental);
+  }
+
+  @Override
   public CCIncrementalData addIncrementalCC(PBConstraint cc) {
     if (!cc.isCC())
       throw new IllegalArgumentException("Cannot generate an incremental cardinality constraint on a pseudo-Boolean constraint");
     final EncodingResult result = EncodingResult.resultForMiniSat(this.f, this);
     return ccEncoder.encodeIncremental(cc, result);
   }
+
+  private enum SolverStyle {MINISAT, GLUCOSE, MINICARD}
 
   @Override
   protected void addClause(final Formula formula) {
@@ -382,27 +372,9 @@ public final class MiniSat extends SATSolver {
     return model;
   }
 
-  /**
-   * Returns the underlying core solver.
-   * <p>
-   * ATTENTION: by influencing the underlying solver directly, you can mess things up completely!  You should really
-   * know, what you are doing.
-   * @return the underlying core solver
-   */
-  public MiniSatStyleSolver underlyingSolver() {
-    return this.solver;
-  }
 
-  /**
-   * Returns the initial phase of literals of this solver.
-   * @return the initial phase of literals of this solver
-   */
-  public boolean initialPhase() {
-    return this.initialPhase;
-  }
 
-  @Override
-  public String toString() {
-    return String.format("MiniSat{result=%s, incremental=%s}", this.result, this.incremental);
-  }
+
+
+
 }
