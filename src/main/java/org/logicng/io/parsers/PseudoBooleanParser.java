@@ -94,6 +94,18 @@ public final class PseudoBooleanParser {
   }
 
   /**
+   * Parses and returns a given string.
+   * @param in a string
+   * @return the {@link Formula} representation of this string
+   * @throws ParserException if the string was not a valid formula
+   */
+  public Formula parse(final String in) throws ParserException {
+    if (in == null)
+      return f.verum();
+    return this.parse(new ByteArrayInputStream(in.getBytes()));
+  }
+
+  /**
    * Parses and returns a given input stream.
    * @param inputStream an input stream
    * @return the {@link Formula} representation of this stream
@@ -113,18 +125,6 @@ public final class PseudoBooleanParser {
     } catch (LexerException e) {
       throw new ParserException("Lexer exception when parsing the formula.", e);
     }
-  }
-
-  /**
-   * Parses and returns a given string.
-   * @param in a string
-   * @return the {@link Formula} representation of this string
-   * @throws ParserException if the string was not a valid formula
-   */
-  public Formula parse(final String in) throws ParserException {
-    if (in == null)
-      return f.verum();
-    return this.parse(new ByteArrayInputStream(in.getBytes()));
   }
 
   @Override
