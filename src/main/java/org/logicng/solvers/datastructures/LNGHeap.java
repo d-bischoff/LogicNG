@@ -52,7 +52,7 @@ import org.logicng.solvers.sat.MiniSatStyleSolver;
  * @version 1.1
  * @since 1.0
  */
-public final class LNGHeap implements VariableOrdering {
+public final class LNGHeap {
 
   private final MiniSatStyleSolver s;
   private LNGIntVector heap;
@@ -60,7 +60,7 @@ public final class LNGHeap implements VariableOrdering {
 
   /**
    * Constructs a new heap for a given solver.  The solver is required to access it's activity information stored
-   * for variables.  The initial freeVars of the heap is 1000 elements.
+   * for variables.  The initial size of the heap is 1000 elements.
    * @param solver the solver
    */
   public LNGHeap(final MiniSatStyleSolver solver) {
@@ -70,66 +70,19 @@ public final class LNGHeap implements VariableOrdering {
   }
 
   /**
-   * Returns the left position on the heap for a given position.
-   * @param pos the position
-   * @return the left position
+   * Returns the size of the heap.
+   * @return the size of the heap
    */
-  private static int left(int pos) {
-    return pos * 2 + 1;
-  }
-
-  /**
-   * Returns the right position on the heap for a given position.
-   * @param pos the position
-   * @return the right position
-   */
-  private static int right(int pos) {
-    return (pos + 1) * 2;
-  }
-
-  /**
-   * Returns the parent position on the heap for a given position.
-   * @param pos the position
-   * @return the parent position
-   */
-  private static int parent(int pos) {
-    return (pos - 1) >> 1;
-  }
-
-  /**
-   * Returns the freeVars of the heap.
-   * @return the freeVars of the heap
-   */
-  public int freeVars() {
+  public int size() {
     return this.heap.size();
   }
 
   /**
-   * Returns {@code true} if the heap ist noFreeVars, {@code false} otherwise.
-   * @return {@code true} if the heap ist noFreeVars
+   * Returns {@code true} if the heap ist empty, {@code false} otherwise.
+   * @return {@code true} if the heap ist empty
    */
-  @Override
-  public boolean noFreeVars() {
+  public boolean empty() {
     return this.heap.size() == 0;
-  }
-
-  /**
-   * Returns {@code true} if a given element is currently free, {@code false} otherwise.
-   * @param n the element
-   * @return {@code true} if a given variable is unassigned
-   */
-  @Override
-  public boolean isMaybeFree(int n){
-    return inHeap(n);
-  }
-
-  /**
-   * Returns {@code true} if a given element is in the heap, {@code false} otherwise.
-   * @param n the element
-   * @return {@code true} if a given variable index is in the heap
-   */
-  private boolean inHeap(int n) {
-    return n < this.indices.size() && this.indices.get(n) >= 0;
   }
 
   /**
@@ -137,117 +90,27 @@ public final class LNGHeap implements VariableOrdering {
    * @param index the position
    * @return the element at the position
    */
-  private int get(int index) {
+  public int get(int index) {
     assert index < this.heap.size();
     return this.heap.get(index);
-  }
-
-  /**
-   * Makes it so that the variable n is decided on earlier.
-   * @param n the element
-   */
-  @Override
-  public void accelerate(int n){
-    decrease(n);
   }
 
   /**
    * Decrease an element's position in the heap
    * @param n the element
    */
-  private void decrease(int n) {
+  public void decrease(int n) {
     assert this.inHeap(n);
     this.percolateUp(this.indices.get(n));
   }
 
   /**
-   * Marks this variable free.
+   * Returns {@code true} if a given element is in the heap, {@code false} otherwise.
    * @param n the element
+   * @return {@code true} if a given variable index is in the heap
    */
-  @Override
-  public void setFree(int n){
-    insert(n);
-  }
-
-  /**
-   * Inserts a given element in the heap.
-   * @param n the element
-   */
-  private void insert(int n) {
-    this.indices.growTo(n + 1, -1);
-    assert !this.inHeap(n);
-    this.indices.set(n, this.heap.size());
-    this.heap.push(n);
-    this.percolateUp(this.indices.get(n));
-  }
-
-  /**
-   * Marks the next free variable as assigned and returns it.
-   * @return the next free variable
-   */
-  @Override
-  public int getNextFreeVariableMarkAssigned() {
-    return removeMin();
-  }
-
-  /**
-   * Removes the minimal element of the heap.
-   * @return the minimal element of the heap
-   */
-  private int removeMin() {
-    int x = this.heap.get(0);
-    this.heap.set(0, this.heap.back());
-    this.indices.set(this.heap.get(0), 0);
-    this.indices.set(x, -1);
-    this.heap.pop();
-    if (this.heap.size() > 1)
-      this.percolateDown(0);
-    return x;
-  }
-
-  /**
-   * Removes a given element of the heap.
-   * @param n the element
-   */
-  @Override
-  public void remove(int n) {
-    assert this.inHeap(n);
-    int kPos = this.indices.get(n);
-    this.indices.set(n, -1);
-    if (kPos < this.heap.size() - 1) {
-      this.heap.set(kPos, this.heap.back());
-      this.indices.set(this.heap.get(kPos), kPos);
-      this.heap.pop();
-      this.percolateDown(kPos);
-    } else
-      this.heap.pop();
-  }
-
-  /**
-   * Rebuilds the heap from a given vector of elements.
-   * @param ns the vector of elements
-   */
-  @Override
-  public void initialize(final LNGIntVector ns) {
-    for (int i = 0; i < this.heap.size(); i++)
-      this.indices.set(this.heap.get(i), -1);
-    this.heap.clear();
-    for (int i = 0; i < ns.size(); i++) {
-      this.indices.set(ns.get(i), i);
-      this.heap.push(ns.get(i));
-    }
-    for (int i = this.heap.size() / 2 - 1; i >= 0; i--)
-      this.percolateDown(i);
-  }
-
-  /**
-   * Clears the heap.
-   */
-  @Override
-  public void clear() {
-    for (int i = 0; i < this.heap.size(); i++)
-      this.indices.set(this.heap.get(i), -1);
-    this.heap.clear();
+  public boolean inHeap(int n) {
+    return n < this.indices.size() && this.indices.get(n) >= 0;
   }
 
   /**
@@ -269,6 +132,42 @@ public final class LNGHeap implements VariableOrdering {
   }
 
   /**
+   * Returns the parent position on the heap for a given position.
+   * @param pos the position
+   * @return the parent position
+   */
+  private static int parent(int pos) {
+    return (pos - 1) >> 1;
+  }
+
+  /**
+   * Inserts a given element in the heap.
+   * @param n the element
+   */
+  public void insert(int n) {
+    this.indices.growTo(n + 1, -1);
+    assert !this.inHeap(n);
+    this.indices.set(n, this.heap.size());
+    this.heap.push(n);
+    this.percolateUp(this.indices.get(n));
+  }
+
+  /**
+   * Removes the minimal element of the heap.
+   * @return the minimal element of the heap
+   */
+  public int removeMin() {
+    int x = this.heap.get(0);
+    this.heap.set(0, this.heap.back());
+    this.indices.set(this.heap.get(0), 0);
+    this.indices.set(x, -1);
+    this.heap.pop();
+    if (this.heap.size() > 1)
+      this.percolateDown(0);
+    return x;
+  }
+
+  /**
    * Bubbles a element at a given position down.
    * @param pos the position
    */
@@ -285,6 +184,72 @@ public final class LNGHeap implements VariableOrdering {
     }
     this.heap.set(p, y);
     this.indices.set(y, p);
+  }
+
+  /**
+   * Returns the left position on the heap for a given position.
+   *
+   * @param pos
+   *     the position
+   *
+   * @return the left position
+   */
+  private static int left(int pos) {
+    return pos * 2 + 1;
+  }
+
+  /**
+   * Returns the right position on the heap for a given position.
+   *
+   * @param pos
+   *     the position
+   *
+   * @return the right position
+   */
+  private static int right(int pos) {
+    return (pos + 1) * 2;
+  }
+
+  /**
+   * Removes a given element of the heap.
+   * @param n the element
+   */
+  public void remove(int n) {
+    assert this.inHeap(n);
+    int kPos = this.indices.get(n);
+    this.indices.set(n, -1);
+    if (kPos < this.heap.size() - 1) {
+      this.heap.set(kPos, this.heap.back());
+      this.indices.set(this.heap.get(kPos), kPos);
+      this.heap.pop();
+      this.percolateDown(kPos);
+    } else
+      this.heap.pop();
+  }
+
+  /**
+   * Rebuilds the heap from a given vector of elements.
+   * @param ns the vector of elements
+   */
+  public void build(final LNGIntVector ns) {
+    for (int i = 0; i < this.heap.size(); i++)
+      this.indices.set(this.heap.get(i), -1);
+    this.heap.clear();
+    for (int i = 0; i < ns.size(); i++) {
+      this.indices.set(ns.get(i), i);
+      this.heap.push(ns.get(i));
+    }
+    for (int i = this.heap.size() / 2 - 1; i >= 0; i--)
+      this.percolateDown(i);
+  }
+
+  /**
+   * Clears the heap.
+   */
+  public void clear() {
+    for (int i = 0; i < this.heap.size(); i++)
+      this.indices.set(this.heap.get(i), -1);
+    this.heap.clear();
   }
 
   @Override

@@ -54,9 +54,7 @@ import org.logicng.collections.LNGVector;
 import org.logicng.solvers.sat.MiniSatStyleSolver;
 
 import static org.logicng.solvers.maxsat.algorithms.MaxSAT.newSATVariable;
-import static org.logicng.solvers.sat.MiniSatStyleSolver.LIT_UNDEF;
-import static org.logicng.solvers.sat.MiniSatStyleSolver.mkLit;
-import static org.logicng.solvers.sat.MiniSatStyleSolver.not;
+import static org.logicng.solvers.sat.MiniSatStyleSolver.*;
 
 /**
  * A sequential weight counter for the encoding of pseudo-Boolean constraints in CNF.
@@ -171,9 +169,9 @@ final class SequentialWeightCounter extends Encoding {
    * @param s           the solver
    * @param lits        the literals of the constraint
    * @param coeffs      the coefficients of the constraint
-   * @param rhs         the right hand freeVars of the constraint
+   * @param rhs         the right hand size of the constraint
    * @param assumptions the current assumptions
-   * @param size        the freeVars
+   * @param size        the size
    */
   public void encode(final MiniSatStyleSolver s, final LNGIntVector lits, final LNGIntVector coeffs,
                      int rhs, final LNGIntVector assumptions, int size) {

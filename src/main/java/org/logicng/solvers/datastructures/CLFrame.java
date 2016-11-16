@@ -62,6 +62,13 @@ public final class CLFrame {
   private boolean mark;
 
   /**
+   * Constructs a new empty frame at level 0.
+   */
+  public CLFrame() {
+    this(0, 0, 0);
+  }
+
+  /**
    * Constructs a new frame.
    * @param d the decision at this level
    * @param l the decision level
@@ -72,13 +79,6 @@ public final class CLFrame {
     this.level = l;
     this.trail = t;
     this.mark = false;
-  }
-
-  /**
-   * Constructs a new noFreeVars frame at level 0.
-   */
-  public CLFrame() {
-    this(0, 0, 0);
   }
 
   /**

@@ -105,11 +105,23 @@ public final class LNGBoundedIntQueue {
   }
 
   /**
-   * Initializes the freeVars of this queue.
-   * @param size the freeVars
+   * Initializes the size of this queue.
+   * @param size the size
    */
   public void initSize(int size) {
     this.growTo(size);
+  }
+
+  /**
+   * Grows this queue to a given size.
+   * @param size the size
+   */
+  private void growTo(int size) {
+    this.elems.growTo(size, 0);
+    this.first = 0;
+    this.maxSize = size;
+    this.queueSize = 0;
+    this.last = 0;
   }
 
   /**
@@ -138,18 +150,6 @@ public final class LNGBoundedIntQueue {
    */
   public int avg() {
     return (int) (this.sumOfQueue / this.queueSize);
-  }
-
-  /**
-   * Grows this queue to a given freeVars.
-   * @param size the freeVars
-   */
-  private void growTo(int size) {
-    this.elems.growTo(size, 0);
-    this.first = 0;
-    this.maxSize = size;
-    this.queueSize = 0;
-    this.last = 0;
   }
 
   @Override

@@ -126,8 +126,8 @@ public class MSClause {
   }
 
   /**
-   * Returns the freeVars (number of literals) of this clause.
-   * @return the freeVars
+   * Returns the size (number of literals) of this clause.
+   * @return the size
    */
   public int size() {
     return this.data.size();
@@ -183,16 +183,16 @@ public class MSClause {
   }
 
   /**
-   * Returns the freeVars of this clause without selector variables.
-   * @return the freeVars of this clause without selector variables
+   * Returns the size of this clause without selector variables.
+   * @return the size of this clause without selector variables
    */
   public int sizeWithoutSelectors() {
     return this.szWithoutSelectors;
   }
 
   /**
-   * Sets the freeVars of this clause without selector variables.
-   * @param szWithoutSelectors the freeVars of this clause without selector variables
+   * Sets the size of this clause without selector variables.
+   * @param szWithoutSelectors the size of this clause without selector variables
    */
   public void setSizeWithoutSelectors(int szWithoutSelectors) {
     this.szWithoutSelectors = szWithoutSelectors;

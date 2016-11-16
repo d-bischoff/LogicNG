@@ -23,6 +23,17 @@ public class GlucoseSyrupTest {
     gs.addClause(clause(1, 2, 3));
   }
 
+  private LNGIntVector clause(int... lits) {
+    final LNGIntVector c = new LNGIntVector(lits.length);
+    for (int l : lits)
+      c.push(literal(l));
+    return c;
+  }
+
+  private int literal(int l) {
+    return l < 0 ? (-l * 2) ^ 1 : l * 2;
+  }
+
   @Test(expected = UnsupportedOperationException.class)
   public void testSaveState() {
     gs.saveState();
@@ -41,7 +52,7 @@ public class GlucoseSyrupTest {
             "#learnts      0\n" +
             "#watches      8\n" +
             "#vars         4\n" +
-            //"#orderheap    4\n" +
+        "#orderheap    4\n" +
             "#trail        0\n" +
             "#trailLim     0\n" +
             "model         []\n" +
@@ -56,17 +67,6 @@ public class GlucoseSyrupTest {
             "#clause lits  3\n" +
             "#learnts lits 0\n";
     Assert.assertEquals(expected, gs.toString());
-  }
-
-  private LNGIntVector clause(int... lits) {
-    final LNGIntVector c = new LNGIntVector(lits.length);
-    for (int l : lits)
-      c.push(literal(l));
-    return c;
-  }
-
-  private int literal(int l) {
-    return l < 0 ? (-l * 2) ^ 1 : l * 2;
   }
 
 }

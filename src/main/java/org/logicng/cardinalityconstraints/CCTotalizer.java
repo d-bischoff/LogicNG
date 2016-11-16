@@ -60,17 +60,14 @@ import org.logicng.formulas.Variable;
  */
 final class CCTotalizer {
 
-  private enum Bound {LOWER, UPPER, BOTH}
-
   private LNGVector<Variable> cardinalityInvars;
   private EncodingResult result;
   private CCIncrementalData incData;
-
   /**
    * Constructs a new totalizer.
    */
   CCTotalizer() {
-    // intentionally left noFreeVars
+    // intentionally left empty
   }
 
   /**
@@ -218,4 +215,6 @@ final class CCTotalizer {
   public String toString() {
     return this.getClass().getSimpleName();
   }
+
+  private enum Bound {LOWER, UPPER, BOTH}
 }

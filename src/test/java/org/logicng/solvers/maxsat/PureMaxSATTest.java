@@ -40,11 +40,7 @@ import org.logicng.solvers.MaxSATSolver;
 import org.logicng.solvers.maxsat.algorithms.MaxSAT;
 import org.logicng.solvers.maxsat.algorithms.MaxSATConfig;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,10 +55,6 @@ import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.Verbosity.SOME;
  */
 public class PureMaxSATTest {
 
-  private final PrintStream logStream;
-
-  private final FormulaFactory f = new FormulaFactory();
-
   private static final String[] files = new String[]{
           "c5315-bug-gate-0.dimacs.seq.filtered.cnf",
           "c6288-bug-gate-0.dimacs.seq.filtered.cnf",
@@ -72,6 +64,8 @@ public class PureMaxSATTest {
           "mot_comb3._red-gate-0.dimacs.seq.filtered.cnf",
           "s15850-bug-onevec-gate-0.dimacs.seq.filtered.cnf"
   };
+  private final PrintStream logStream;
+  private final FormulaFactory f = new FormulaFactory();
 
   public PureMaxSATTest() throws FileNotFoundException {
     logStream = new PrintStream("tests/maxsat/log.txt");
@@ -93,6 +87,33 @@ public class PureMaxSATTest {
       readCNF(solver, "tests/sat/9symml_gr_rcs_w6.shuffled.cnf");
       Assert.assertEquals(MaxSAT.MaxSATResult.OPTIMUM, solver.solve());
       Assert.assertEquals(0, solver.result());
+    }
+  }
+
+  private void readCNF(final MaxSATSolver solver, final String fileName) throws IOException {
+    final BufferedReader reader = new BufferedReader(new FileReader(fileName));
+    boolean cont = true;
+    while (reader.ready() && cont) {
+      final String line = reader.readLine().trim();
+      if (line.startsWith("p"))
+        cont = false;
+
+    }
+    String[] tokens;
+    final List<Literal> literals = new ArrayList<>();
+    while (reader.ready()) {
+      tokens = reader.readLine().split(" ");
+      assert tokens.length >= 2;
+      assert "0".equals(tokens[tokens.length - 1]);
+      literals.clear();
+      for (int i = 0; i < tokens.length - 1; i++) {
+        if (!tokens[i].isEmpty()) {
+          int parsedLit = Integer.parseInt(tokens[i]);
+          String var = "v" + Math.abs(parsedLit);
+          literals.add(parsedLit > 0 ? f.literal(var, true) : f.literal(var, false));
+        }
+      }
+      solver.addSoftFormula(f.or(literals), 1);
     }
   }
 
@@ -187,7 +208,7 @@ public class PureMaxSATTest {
     Assert.assertEquals(2, stats.satCalls());
     Assert.assertEquals(22.73, stats.averageCoreSize(), 0.1);
     Assert.assertEquals(9032, stats.symmetryClauses());
-    Assert.assertEquals("MaxSAT.Stats{best solution=26, #sat calls=2, #unsat calls=26, average core freeVars=22.73, #symmetry clauses=9032}", stats.toString());
+    Assert.assertEquals("MaxSAT.Stats{best solution=26, #sat calls=2, #unsat calls=26, average core size=22.73, #symmetry clauses=9032}", stats.toString());
   }
 
   @Test
@@ -256,33 +277,6 @@ public class PureMaxSATTest {
       }
       s.solve();
       Assert.assertEquals(expected, s.toString());
-    }
-  }
-
-  private void readCNF(final MaxSATSolver solver, final String fileName) throws IOException {
-    final BufferedReader reader = new BufferedReader(new FileReader(fileName));
-    boolean cont = true;
-    while (reader.ready() && cont) {
-      final String line = reader.readLine().trim();
-      if (line.startsWith("p"))
-        cont = false;
-
-    }
-    String[] tokens;
-    final List<Literal> literals = new ArrayList<>();
-    while (reader.ready()) {
-      tokens = reader.readLine().split(" ");
-      assert tokens.length >= 2;
-      assert "0".equals(tokens[tokens.length - 1]);
-      literals.clear();
-      for (int i = 0; i < tokens.length - 1; i++) {
-        if (!tokens[i].isEmpty()) {
-          int parsedLit = Integer.parseInt(tokens[i]);
-          String var = "v" + Math.abs(parsedLit);
-          literals.add(parsedLit > 0 ? f.literal(var, true) : f.literal(var, false));
-        }
-      }
-      solver.addSoftFormula(f.or(literals), 1);
     }
   }
 }

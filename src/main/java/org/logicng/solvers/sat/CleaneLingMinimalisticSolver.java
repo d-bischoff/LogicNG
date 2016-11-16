@@ -61,9 +61,7 @@ import org.logicng.solvers.datastructures.CLWatch;
 
 import java.io.PrintStream;
 
-import static org.logicng.datastructures.Tristate.FALSE;
-import static org.logicng.datastructures.Tristate.TRUE;
-import static org.logicng.datastructures.Tristate.UNDEF;
+import static org.logicng.datastructures.Tristate.*;
 
 /**
  * A minimalistic version of the CleaneLing solver.
@@ -406,7 +404,7 @@ public final class CleaneLingMinimalisticSolver extends CleaneLingStyleSolver {
     output.println("level=" + level);
     output.println("next=" + next);
     output.println("ignore=" + ignore);
-    output.println("noFreeVars=" + empty);
+    output.println("empty=" + empty);
     output.println("vars=" + vars);
     output.println("vals=" + vals);
     output.println("phases=" + phases);

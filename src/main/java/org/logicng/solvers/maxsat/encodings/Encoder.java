@@ -52,10 +52,7 @@ package org.logicng.solvers.maxsat.encodings;
 import org.logicng.collections.LNGIntVector;
 import org.logicng.solvers.sat.MiniSatStyleSolver;
 
-import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.AMOEncoding;
-import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.CardinalityEncoding;
-import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.IncrementalStrategy;
-import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.PBEncoding;
+import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.*;
 
 /**
  * Encoders for cardinality constraints, pseudo Booleans and AMO constraints.
@@ -281,9 +278,9 @@ public class Encoder {
    * @param s           the solver
    * @param lits        the literals of the constraint
    * @param coeffs      the coefficients of the constraint
-   * @param rhs         the right hand freeVars of the constraint
+   * @param rhs         the right hand size of the constraint
    * @param assumptions the current assumptions
-   * @param size        the freeVars
+   * @param size        the size
    * @throws IllegalStateException if the pseudo-Boolean encoding is unknown
    */
   public void incEncodePB(final MiniSatStyleSolver s, final LNGIntVector lits, final LNGIntVector coeffs,

@@ -38,41 +38,6 @@ import org.logicng.configurations.ConfigurationType;
  */
 public final class CCConfig extends Configuration {
 
-  /**
-   * The encoder for at-most-one and exactly-one constraints.
-   */
-  public enum AMO_ENCODER {
-    PURE, LADDER, PRODUCT, NESTED, COMMANDER, BINARY, BIMANDER, BEST
-  }
-
-  /**
-   * The encoder for at-most-k constraints.
-   */
-  public enum AMK_ENCODER {
-    TOTALIZER, MODULAR_TOTALIZER, CARDINALITY_NETWORK, BEST
-  }
-
-  /**
-   * The encoder for at-least-k constraints.
-   */
-  public enum ALK_ENCODER {
-    TOTALIZER, MODULAR_TOTALIZER, CARDINALITY_NETWORK, BEST
-  }
-
-  /**
-   * The encoder for exactly-k constraints.
-   */
-  public enum EXK_ENCODER {
-    TOTALIZER, CARDINALITY_NETWORK, BEST
-  }
-
-  /**
-   * The group freeVars for the Bimander encoding.
-   */
-  public enum BIMANDER_GROUP_SIZE {
-    HALF, SQRT, FIXED
-  }
-
   final AMO_ENCODER amoEncoder;
   final AMK_ENCODER amkEncoder;
   final ALK_ENCODER alkEncoder;
@@ -82,7 +47,6 @@ public final class CCConfig extends Configuration {
   final int nestingGroupSize;
   final int productRecursiveBound;
   final int commanderGroupSize;
-
   /**
    * Constructs a new cardinality constraint encoder configuration from a given builder.
    * @param builder the builder
@@ -114,6 +78,41 @@ public final class CCConfig extends Configuration {
     sb.append("commanderGroupSize=").append(this.commanderGroupSize).append("\n");
     sb.append("}\n");
     return sb.toString();
+  }
+
+  /**
+   * The encoder for at-most-one and exactly-one constraints.
+   */
+  public enum AMO_ENCODER {
+    PURE, LADDER, PRODUCT, NESTED, COMMANDER, BINARY, BIMANDER, BEST
+  }
+
+  /**
+   * The encoder for at-most-k constraints.
+   */
+  public enum AMK_ENCODER {
+    TOTALIZER, MODULAR_TOTALIZER, CARDINALITY_NETWORK, BEST
+  }
+
+  /**
+   * The encoder for at-least-k constraints.
+   */
+  public enum ALK_ENCODER {
+    TOTALIZER, MODULAR_TOTALIZER, CARDINALITY_NETWORK, BEST
+  }
+
+  /**
+   * The encoder for exactly-k constraints.
+   */
+  public enum EXK_ENCODER {
+    TOTALIZER, CARDINALITY_NETWORK, BEST
+  }
+
+  /**
+   * The group size for the Bimander encoding.
+   */
+  public enum BIMANDER_GROUP_SIZE {
+    HALF, SQRT, FIXED
   }
 
   /**
@@ -171,8 +170,8 @@ public final class CCConfig extends Configuration {
     }
 
     /**
-     * Sets the group freeVars for the bimander encoding. The default value is {@code SQRT}.
-     * @param bimanderGroupSize the bimander encoding group freeVars
+     * Sets the group size for the bimander encoding. The default value is {@code SQRT}.
+     * @param bimanderGroupSize the bimander encoding group size
      * @return the builder
      */
     public Builder bimanderGroupSize(final BIMANDER_GROUP_SIZE bimanderGroupSize) {
@@ -181,9 +180,9 @@ public final class CCConfig extends Configuration {
     }
 
     /**
-     * Sets the fixed group freeVars for the bimander encoding. The default value is 3.  This setting is only used if
-     * the bimander group freeVars is set to {@code FIXED}.
-     * @param bimanderFixedGroupSize the bimander encoding fixed group freeVars
+     * Sets the fixed group size for the bimander encoding. The default value is 3.  This setting is only used if
+     * the bimander group size is set to {@code FIXED}.
+     * @param bimanderFixedGroupSize the bimander encoding fixed group size
      * @return the builder
      */
     public Builder bimanderFixedGroupSize(int bimanderFixedGroupSize) {
@@ -192,8 +191,8 @@ public final class CCConfig extends Configuration {
     }
 
     /**
-     * Sets the group freeVars for the nesting encoding. The default value is 4.
-     * @param nestingGroupSize the group freeVars for the nesting encoding
+     * Sets the group size for the nesting encoding. The default value is 4.
+     * @param nestingGroupSize the group size for the nesting encoding
      * @return the builder
      */
     public Builder nestingGroupSize(int nestingGroupSize) {
@@ -212,8 +211,8 @@ public final class CCConfig extends Configuration {
     }
 
     /**
-     * Sets the group freeVars for the nesting encoding. The default value is 4.
-     * @param commanderGroupSize the group freeVars for the nesting encoding
+     * Sets the group size for the nesting encoding. The default value is 4.
+     * @param commanderGroupSize the group size for the nesting encoding
      * @return the builder
      */
     public Builder commanderGroupSize(int commanderGroupSize) {

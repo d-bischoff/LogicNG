@@ -57,6 +57,17 @@ public class MiniCardTest {
     Assert.assertEquals(FALSE, solver.solve(null, clause(1, 2)));
   }
 
+  private LNGIntVector clause(int... lits) {
+    final LNGIntVector c = new LNGIntVector(lits.length);
+    for (int l : lits)
+      c.push(literal(l));
+    return c;
+  }
+
+  private int literal(int l) {
+    return l < 0 ? (-l * 2) ^ 1 : l * 2;
+  }
+
   @Test
   public void testAnalyzeFinalWithAtMost() {
     final MiniCard solver = new MiniCard();
@@ -128,7 +139,7 @@ public class MiniCardTest {
             "#learnts      0\n" +
             "#watches      8\n" +
             "#vars         4\n" +
-            //"#orderheap    4\n" +
+        "#orderheap    4\n" +
             "#trail        0\n" +
             "#trailLim     0\n" +
             "model         []\n" +
@@ -143,16 +154,5 @@ public class MiniCardTest {
             "#clause lits  6\n" +
             "#learnts lits 0\n";
     Assert.assertEquals(expected, solver.toString());
-  }
-
-  private LNGIntVector clause(int... lits) {
-    final LNGIntVector c = new LNGIntVector(lits.length);
-    for (int l : lits)
-      c.push(literal(l));
-    return c;
-  }
-
-  private int literal(int l) {
-    return l < 0 ? (-l * 2) ^ 1 : l * 2;
   }
 }

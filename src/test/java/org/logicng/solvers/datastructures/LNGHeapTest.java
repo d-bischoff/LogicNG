@@ -46,15 +46,15 @@ public class LNGHeapTest {
     solver.newVar(true, true);
     solver.newVar(true, true);
     solver.newVar(true, true);
-    VariableOrdering heap = new LNGHeap(solver);
-    Assert.assertTrue(heap.noFreeVars());
-    heap.setFree(1);
-    heap.setFree(2);
-    heap.setFree(0);
-    //Assert.assertEquals(1, heap.get(0));
+    LNGHeap heap = new LNGHeap(solver);
+    Assert.assertTrue(heap.empty());
+    heap.insert(1);
+    heap.insert(2);
+    heap.insert(0);
+    Assert.assertEquals(1, heap.get(0));
     Assert.assertEquals("LNGHeap{[1, 2], [2, 0], [0, 1]}", heap.toString());
-    //Assert.assertEquals(3, heap.freeVars());
+    Assert.assertEquals(3, heap.size());
     heap.clear();
-    Assert.assertTrue(heap.noFreeVars());
+    Assert.assertTrue(heap.empty());
   }
 }

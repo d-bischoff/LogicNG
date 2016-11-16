@@ -68,7 +68,7 @@ final class CCAMONested implements CCAtMostOne {
 
   /**
    * Constructs the nested AMO encoder.
-   * @param groupSize the group freeVars
+   * @param groupSize the group size
    */
   CCAMONested(int groupSize) {
     this.groupSize = groupSize;

@@ -18,14 +18,14 @@ public class IncrementableAssignment extends Assignment {
   private final SortedSet<Variable> variableOrdering = new TreeSet<>();
 
   /**
-   * Constructs a new noFreeVars assignment (without fast evaluation).
+   * Constructs a new empty assignment (without fast evaluation).
    */
   public IncrementableAssignment() {
     super(false);
   }
 
   /**
-   * Constructs a new noFreeVars assignment.
+   * Constructs a new empty assignment.
    *
    * @param fastEvaluable indicates whether this assignment should be evaluable fast.  If this parameter is set to
    *                      {@code true} the internal data structures will be optimized for fast evaluation but
@@ -66,7 +66,7 @@ public class IncrementableAssignment extends Assignment {
    */
   public IncrementableAssignment(final Collection<? extends Literal> lits) {
     super(lits, false);
-    lits.stream().<Variable>map(Literal::variable).collect(Collectors.toCollection(() -> variableOrdering));
+    lits.stream().map(Literal::variable).collect(Collectors.toCollection(() -> variableOrdering));
   }
 
   /**
@@ -80,7 +80,7 @@ public class IncrementableAssignment extends Assignment {
    */
   public IncrementableAssignment(Collection<? extends Literal> lits, boolean fastEvaluable) {
     super(lits, fastEvaluable);
-    lits.stream().<Variable>map(Literal::variable).collect(Collectors.toCollection(() -> variableOrdering));
+    lits.stream().map(Literal::variable).collect(Collectors.toCollection(() -> variableOrdering));
   }
 
   /**

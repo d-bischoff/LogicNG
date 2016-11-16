@@ -28,11 +28,7 @@
 
 package org.logicng.collections;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * A simple vector implementation (inspired by MiniSat, CleaneLing, Sat4J).
@@ -97,19 +93,11 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
-   * Returns whether the vector is noFreeVars or not.
-   * @return {@code true} if the vector is noFreeVars, {@code false} otherwise
+   * Returns whether the vector is empty or not.
+   * @return {@code true} if the vector is empty, {@code false} otherwise
    */
   public boolean empty() {
     return this.size == 0;
-  }
-
-  /**
-   * Returns the freeVars of the vector.
-   * @return the freeVars of the vector
-   */
-  public int size() {
-    return this.size;
   }
 
   /**
@@ -132,22 +120,25 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
+   * Ensures that this vector has the given size.  If not - the size is doubled and the old elements are copied.
+   * @param newSize the size to ensure
+   */
+  @SuppressWarnings("unchecked")
+  private void ensure(final int newSize) {
+    if (newSize >= this.elements.length) {
+      final T[] newArray = (T[]) new Object[Math.max(newSize, this.size * 2)];
+      System.arraycopy(this.elements, 0, newArray, 0, this.size);
+      this.elements = newArray;
+    }
+  }
+
+  /**
    * Pushes an element and assumes that there is enough space on the vector.
    * @param element the element to push
    * @throws ArrayIndexOutOfBoundsException if there was not enough space on the vector
    */
   public void unsafePush(final T element) {
     this.elements[this.size++] = element;
-  }
-
-  /**
-   * Returns the element at a given position in the vector.
-   * @param position the position
-   * @return the element at the position
-   * @throws ArrayIndexOutOfBoundsException if the position is not found in the vector
-   */
-  public final T get(int position) {
-    return this.elements[position];
   }
 
   /**
@@ -168,9 +159,9 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
-   * Shrinks the vector to a given freeVars if the new freeVars is less then the current freeVars.  Otherwise the freeVars remains
+   * Shrinks the vector to a given size if the new size is less then the current size.  Otherwise the size remains
    * the same.
-   * @param newSize the new freeVars
+   * @param newSize the new size
    */
   public void shrinkTo(int newSize) {
     if (newSize < this.size) {
@@ -181,8 +172,8 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
-   * Grows the vector to a new freeVars and initializes the new elements with a given value.
-   * @param size the new freeVars
+   * Grows the vector to a new size and initializes the new elements with a given value.
+   * @param size the new size
    * @param pad  the value for new elements
    */
   public void growTo(int size, final T pad) {
@@ -195,8 +186,8 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
-   * Grows the vector to a new freeVars and initializes the new elements with {@code null}.
-   * @param size the new freeVars
+   * Grows the vector to a new size and initializes the new elements with {@code null}.
+   * @param size the new size
    */
   public void growTo(int size) {
     if (this.size >= size)
@@ -208,7 +199,7 @@ public final class LNGVector<T> implements Iterable<T> {
   /**
    * Removes a given number of elements from the vector.
    * @param num the number of elements to remove.
-   * @throws ArrayIndexOutOfBoundsException if the number of elements to remove is larger than the freeVars of the vector
+   * @throws ArrayIndexOutOfBoundsException if the number of elements to remove is larger than the size of the vector
    */
   public void removeElements(int num) {
     int n = num;
@@ -247,7 +238,29 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
-   * Clears the vector.  This method only sets the freeVars to 0.  The elements are not nulled out.
+   * Returns the size of the vector.
+   * @return the size of the vector
+   */
+  public int size() {
+    return this.size;
+  }
+
+  /**
+   * Returns the element at a given position in the vector.
+   *
+   * @param position
+   *     the position
+   *
+   * @return the element at the position
+   * @throws ArrayIndexOutOfBoundsException
+   *     if the position is not found in the vector
+   */
+  public final T get(int position) {
+    return this.elements[position];
+  }
+
+  /**
+   * Clears the vector.  This method only sets the size to 0.  The elements are not nulled out.
    * Use {@link #release()} for this purpose.
    */
   public void clear() {
@@ -260,14 +273,6 @@ public final class LNGVector<T> implements Iterable<T> {
   public void release() {
     Arrays.fill(this.elements, null);
     this.size = 0;
-  }
-
-  /**
-   * Sorts this vector with a given comparator (with JDK sorting).
-   * @param comparator the comparator
-   */
-  public void sort(final Comparator<T> comparator) {
-    Arrays.sort(this.elements, 0, this.size, comparator);
   }
 
   /**
@@ -352,24 +357,19 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
+   * Sorts this vector with a given comparator (with JDK sorting).
+   * @param comparator the comparator
+   */
+  public void sort(final Comparator<T> comparator) {
+    Arrays.sort(this.elements, 0, this.size, comparator);
+  }
+
+  /**
    * Returns this vector's contents as an array.
    * @return the array
    */
   public T[] toArray() {
     return Arrays.copyOf(this.elements, this.size);
-  }
-
-  /**
-   * Ensures that this vector has the given freeVars.  If not - the freeVars is doubled and the old elements are copied.
-   * @param newSize the freeVars to ensure
-   */
-  @SuppressWarnings("unchecked")
-  private void ensure(final int newSize) {
-    if (newSize >= this.elements.length) {
-      final T[] newArray = (T[]) new Object[Math.max(newSize, this.size * 2)];
-      System.arraycopy(this.elements, 0, newArray, 0, this.size);
-      this.elements = newArray;
-    }
   }
 
   @Override

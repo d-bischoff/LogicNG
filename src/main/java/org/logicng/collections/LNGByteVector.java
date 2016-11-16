@@ -89,16 +89,16 @@ public final class LNGByteVector {
   }
 
   /**
-   * Returns whether the vector is noFreeVars or not.
-   * @return {@code true} if the vector is noFreeVars, {@code false} otherwise
+   * Returns whether the vector is empty or not.
+   * @return {@code true} if the vector is empty, {@code false} otherwise
    */
   public boolean empty() {
     return this.size == 0;
   }
 
   /**
-   * Returns the freeVars of the vector.
-   * @return the freeVars of the vector
+   * Returns the size of the vector.
+   * @return the size of the vector
    */
   public int size() {
     return this.size;
@@ -120,6 +120,18 @@ public final class LNGByteVector {
     int newSize = this.size + 1;
     this.ensure(newSize);
     this.elements[this.size++] = element;
+  }
+
+  /**
+   * Ensures that this vector has the given size.  If not - the size is doubled and the old elements are copied.
+   * @param newSize the size to ensure
+   */
+  private void ensure(final int newSize) {
+    if (newSize >= this.elements.length) {
+      final byte[] newArray = new byte[Math.max(newSize, this.size * 2)];
+      System.arraycopy(this.elements, 0, newArray, 0, this.size);
+      this.elements = newArray;
+    }
   }
 
   /**
@@ -159,9 +171,9 @@ public final class LNGByteVector {
   }
 
   /**
-   * Shrinks the vector to a given freeVars if the new freeVars is less then the current freeVars.  Otherwise the freeVars remains
+   * Shrinks the vector to a given size if the new size is less then the current size.  Otherwise the size remains
    * the same.
-   * @param newSize the new freeVars
+   * @param newSize the new size
    */
   public void shrinkTo(int newSize) {
     if (newSize < this.size)
@@ -169,8 +181,8 @@ public final class LNGByteVector {
   }
 
   /**
-   * Grows the vector to a new freeVars and initializes the new elements with a given value.
-   * @param size the new freeVars
+   * Grows the vector to a new size and initializes the new elements with a given value.
+   * @param size the new size
    * @param pad  the value for new elements
    */
   public void growTo(int size, byte pad) {
@@ -185,7 +197,7 @@ public final class LNGByteVector {
   /**
    * Removes a given number of elements from the vector.
    * @param num the number of elements to remove.
-   * @throws ArrayIndexOutOfBoundsException if the number of elements to remove is larger than the freeVars of the vector
+   * @throws ArrayIndexOutOfBoundsException if the number of elements to remove is larger than the size of the vector
    */
   public void removeElements(int num) {
     int count = num;
@@ -225,18 +237,6 @@ public final class LNGByteVector {
    */
   public byte[] toArray() {
     return Arrays.copyOf(this.elements, this.size);
-  }
-
-  /**
-   * Ensures that this vector has the given freeVars.  If not - the freeVars is doubled and the old elements are copied.
-   * @param newSize the freeVars to ensure
-   */
-  private void ensure(final int newSize) {
-    if (newSize >= this.elements.length) {
-      final byte[] newArray = new byte[Math.max(newSize, this.size * 2)];
-      System.arraycopy(this.elements, 0, newArray, 0, this.size);
-      this.elements = newArray;
-    }
   }
 
   @Override

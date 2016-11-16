@@ -55,16 +55,10 @@ import org.logicng.collections.LNGLongPriorityQueue;
 import org.logicng.collections.LNGVector;
 import org.logicng.datastructures.Tristate;
 import org.logicng.handlers.SATHandler;
-import org.logicng.solvers.datastructures.CLClause;
-import org.logicng.solvers.datastructures.CLFrame;
-import org.logicng.solvers.datastructures.CLOccs;
-import org.logicng.solvers.datastructures.CLVar;
-import org.logicng.solvers.datastructures.CLWatch;
+import org.logicng.solvers.datastructures.*;
 import org.logicng.util.Pair;
 
-import static org.logicng.datastructures.Tristate.FALSE;
-import static org.logicng.datastructures.Tristate.TRUE;
-import static org.logicng.datastructures.Tristate.UNDEF;
+import static org.logicng.datastructures.Tristate.*;
 
 /**
  * A complete Reimplementation of the CleaneLing solver.
@@ -72,8 +66,6 @@ import static org.logicng.datastructures.Tristate.UNDEF;
  * @since 1.0
  */
 public final class CleaneLingSolver extends CleaneLingStyleSolver {
-
-  private enum Simplifier {NOSIMP, TOPSIMP, BLOCK, ELIM}
 
   private boolean dense;
   private boolean schedule;
@@ -87,7 +79,6 @@ public final class CleaneLingSolver extends CleaneLingStyleSolver {
   private int distilled;
   private LNGIntVector extension;
   private Simplifier simplifier;
-
   /**
    * Constructs a new CleaneLing solver with a given configuration.
    * @param config the configuration
@@ -126,6 +117,31 @@ public final class CleaneLingSolver extends CleaneLingStyleSolver {
         newPushConnectClause();
       addedlits.clear();
     }
+  }
+
+  @Override
+  protected void importLit(int lit) {
+    int idx = Math.abs(lit);
+    assert lit != 0;
+    int newIdx;
+    while (idx >= (newIdx = vars.size())) {
+      vars.push(new CLVar());
+      vals.push((byte) 0);
+      phases.push((byte) 0);
+      watches.push(new LNGVector<CLWatch>());
+      watches.push(new LNGVector<CLWatch>());
+      occs.push(new CLOccs[]{new CLOccs(), new CLOccs()});
+      if (newIdx == 0)
+        continue;
+      decisions.push(newIdx);
+    }
+  }
+
+  @Override
+  protected void newPushConnectClause(boolean redundant, int glue) {
+    final CLClause c = newClause(redundant, glue);
+    clauses.push(c);
+    connectClause(c);
   }
 
   @Override
@@ -170,28 +186,25 @@ public final class CleaneLingSolver extends CleaneLingStyleSolver {
   }
 
   @Override
-  protected void importLit(int lit) {
-    int idx = Math.abs(lit);
-    assert lit != 0;
-    int newIdx;
-    while (idx >= (newIdx = vars.size())) {
-      vars.push(new CLVar());
-      vals.push((byte) 0);
-      phases.push((byte) 0);
-      watches.push(new LNGVector<CLWatch>());
-      watches.push(new LNGVector<CLWatch>());
-      occs.push(new CLOccs[]{new CLOccs(), new CLOccs()});
-      if (newIdx == 0)
-        continue;
-      decisions.push(newIdx);
+  protected void unassign(int lit) {
+    assert level > 0;
+    final CLClause reason;
+    final CLVar v = var(lit);
+    vals.set(Math.abs(lit), VALUE_UNASSIGNED);
+    assert v.level() == level;
+    v.setLevel(Integer.MAX_VALUE);
+    reason = v.reason();
+    if (reason != null) {
+      assert reason.forcing();
+      reason.setForcing(false);
+      if (reason.redundant() && !reason.important()) {
+        assert limits.reduceForcing > 0;
+        limits.reduceForcing--;
+      }
     }
-  }
-
-  @Override
-  protected void newPushConnectClause(boolean redundant, int glue) {
-    final CLClause c = newClause(redundant, glue);
-    clauses.push(c);
-    connectClause(c);
+    final int idx = Math.abs(lit);
+    if (!decisions.contains(idx))
+      decisions.push(idx);
   }
 
   @Override
@@ -222,28 +235,6 @@ public final class CleaneLingSolver extends CleaneLingStyleSolver {
         limits.reduceForcing++;
       updateGlue(reason);
     }
-  }
-
-  @Override
-  protected void unassign(int lit) {
-    assert level > 0;
-    final CLClause reason;
-    final CLVar v = var(lit);
-    vals.set(Math.abs(lit), VALUE_UNASSIGNED);
-    assert v.level() == level;
-    v.setLevel(Integer.MAX_VALUE);
-    reason = v.reason();
-    if (reason != null) {
-      assert reason.forcing();
-      reason.setForcing(false);
-      if (reason.redundant() && !reason.important()) {
-        assert limits.reduceForcing > 0;
-        limits.reduceForcing--;
-      }
-    }
-    final int idx = Math.abs(lit);
-    if (!decisions.contains(idx))
-      decisions.push(idx);
   }
 
   @Override
@@ -889,7 +880,7 @@ public final class CleaneLingSolver extends CleaneLingStyleSolver {
 
   /**
    * Reduces simplification steps for large formulas.
-   * @return the freeVars penalty
+   * @return the size penalty
    */
   private int sizePenalty() {
     long numClauses = (long) stats.clausesIrredundant / config.sizepen;
@@ -1572,5 +1563,7 @@ public final class CleaneLingSolver extends CleaneLingStyleSolver {
     unmark();
     return res;
   }
+
+  private enum Simplifier {NOSIMP, TOPSIMP, BLOCK, ELIM}
 }
 

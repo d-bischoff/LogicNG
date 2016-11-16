@@ -541,6 +541,77 @@ public final class MiniCard extends MiniSatStyleSolver {
   }
 
   /**
+   * Performs an unconditional backtrack to level zero.
+   */
+  private void completeBacktrack() {
+    for (int v = 0; v < vars.size(); v++) {
+      MSVariable var = vars.get(v);
+      var.assign(Tristate.UNDEF);
+      var.setReason(null);
+      if (!orderHeap.inHeap(v) && var.decision())
+        orderHeap.insert(v);
+    }
+    trail.clear();
+    trailLim.clear();
+    qhead = 0;
+  }
+
+  /**
+   * Performs a simple removal of clauses used during the loading of an older state.
+   *
+   * @param c
+   *     the clause to remove
+   */
+  private void simpleRemoveClause(final MSClause c) {
+    if (c.isAtMost())
+      for (int i = 0; i < c.atMostWatchers(); i++)
+        watches.get(c.get(i)).remove(new MSWatcher(c, c.get(i)));
+    else {
+      watches.get(not(c.get(0))).remove(new MSWatcher(c, c.get(1)));
+      watches.get(not(c.get(1))).remove(new MSWatcher(c, c.get(0)));
+    }
+  }
+
+  private int findNewWatch(final MSClause c, int p) {
+    assert c.isAtMost();
+    int newWatch = LIT_ERROR;
+    int numFalse = 0;
+    int numTrue = 0;
+    int maxTrue = c.size() - c.atMostWatchers() + 1;
+    for (int q = 0; q < c.atMostWatchers(); q++) {
+      Tristate val = value(c.get(q));
+      if (val == Tristate.UNDEF)
+        continue;
+      else if (val == Tristate.FALSE) {
+        numFalse++;
+        if (numFalse >= c.atMostWatchers() - 1)
+          return p;
+        continue;
+      }
+      assert val == Tristate.TRUE;
+      numTrue++;
+      if (numTrue > maxTrue)
+        return LIT_ERROR;
+      if (c.get(q) == p) {
+        assert newWatch == LIT_ERROR;
+        for (int next = c.atMostWatchers(); next < c.size(); next++)
+          if (value(c.get(next)) != Tristate.TRUE) {
+            newWatch = c.get(next);
+            c.set(next, c.get(q));
+            c.set(q, newWatch);
+            return newWatch;
+          }
+        newWatch = LIT_UNDEF;
+      }
+    }
+    assert newWatch == LIT_UNDEF;
+    if (numTrue > 1)
+      return LIT_ERROR;
+    else
+      return LIT_UNDEF;
+  }
+
+  /**
    * Adds an at-most k constraint.
    * @param ps  the literals of the constraint
    * @param rhs the right hand side of the constraint
@@ -677,45 +748,6 @@ public final class MiniCard extends MiniSatStyleSolver {
     }
   }
 
-  private int findNewWatch(final MSClause c, int p) {
-    assert c.isAtMost();
-    int newWatch = LIT_ERROR;
-    int numFalse = 0;
-    int numTrue = 0;
-    int maxTrue = c.size() - c.atMostWatchers() + 1;
-    for (int q = 0; q < c.atMostWatchers(); q++) {
-      Tristate val = value(c.get(q));
-      if (val == Tristate.UNDEF)
-        continue;
-      else if (val == Tristate.FALSE) {
-        numFalse++;
-        if (numFalse >= c.atMostWatchers() - 1)
-          return p;
-        continue;
-      }
-      assert val == Tristate.TRUE;
-      numTrue++;
-      if (numTrue > maxTrue)
-        return LIT_ERROR;
-      if (c.get(q) == p) {
-        assert newWatch == LIT_ERROR;
-        for (int next = c.atMostWatchers(); next < c.size(); next++)
-          if (value(c.get(next)) != Tristate.TRUE) {
-            newWatch = c.get(next);
-            c.set(next, c.get(q));
-            c.set(q, newWatch);
-            return newWatch;
-          }
-        newWatch = LIT_UNDEF;
-      }
-    }
-    assert newWatch == LIT_UNDEF;
-    if (numTrue > 1)
-      return LIT_ERROR;
-    else
-      return LIT_UNDEF;
-  }
-
   /**
    * Analyzes a given conflict clause wrt. the current solver state.  A 1-UIP clause is created during this procedure
    * and the new backtracking level is stored in the solver state.
@@ -814,35 +846,5 @@ public final class MiniCard extends MiniSatStyleSolver {
     }
     for (int l = 0; l < analyzeToClear.size(); l++)
       seen.set(var(analyzeToClear.get(l)), false);
-  }
-
-  /**
-   * Performs an unconditional backtrack to level zero.
-   */
-  private void completeBacktrack() {
-    for (int v = 0; v < vars.size(); v++) {
-      MSVariable var = vars.get(v);
-      var.assign(Tristate.UNDEF);
-      var.setReason(null);
-      if (!orderHeap.isMaybeFree(v) && var.decision())
-        orderHeap.setFree(v);
-    }
-    trail.clear();
-    trailLim.clear();
-    qhead = 0;
-  }
-
-  /**
-   * Performs a simple removal of clauses used during the loading of an older state.
-   * @param c the clause to remove
-   */
-  private void simpleRemoveClause(final MSClause c) {
-    if (c.isAtMost())
-      for (int i = 0; i < c.atMostWatchers(); i++)
-        watches.get(c.get(i)).remove(new MSWatcher(c, c.get(i)));
-    else {
-      watches.get(not(c.get(0))).remove(new MSWatcher(c, c.get(1)));
-      watches.get(not(c.get(1))).remove(new MSWatcher(c, c.get(0)));
-    }
   }
 }

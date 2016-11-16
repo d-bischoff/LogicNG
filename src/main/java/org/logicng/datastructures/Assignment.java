@@ -33,15 +33,7 @@ import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Literal;
 import org.logicng.formulas.Variable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * A Boolean assignment.
@@ -60,14 +52,14 @@ public class Assignment {
   protected boolean fastEvaluable;
 
   /**
-   * Constructs a new noFreeVars assignment (without fast evaluation).
+   * Constructs a new empty assignment (without fast evaluation).
    */
   public Assignment() {
     this(false);
   }
 
   /**
-   * Constructs a new noFreeVars assignment.
+   * Constructs a new empty assignment.
    * @param fastEvaluable indicates whether this assignment should be evaluable fast.  If this parameter is set to
    *                      {@code true} the internal data structures will be optimized for fast evaluation but
    *                      creation of the object or adding literals can take longer.
@@ -193,17 +185,6 @@ public class Assignment {
   }
 
   /**
-   * Returns all literals of this assignment.
-   * @return all literals of this assignment
-   */
-  public SortedSet<Literal> literals() {
-    final SortedSet<Literal> set = new TreeSet<>();
-    set.addAll(this.pos);
-    set.addAll(this.neg);
-    return set;
-  }
-
-  /**
    * Add a single literal to this assignment.
    * @param lit the literal
    */
@@ -251,6 +232,18 @@ public class Assignment {
    */
   public Formula formula(final FormulaFactory f) {
     return f.and(this.literals());
+  }
+
+  /**
+   * Returns all literals of this assignment.
+   *
+   * @return all literals of this assignment
+   */
+  public SortedSet<Literal> literals() {
+    final SortedSet<Literal> set = new TreeSet<>();
+    set.addAll(this.pos);
+    set.addAll(this.neg);
+    return set;
   }
 
   /**

@@ -90,15 +90,15 @@ public final class CLClause {
   private LNGIntVector lits;
 
   /**
-   * Constructs a new clause with default freeVars 2.
+   * Constructs a new clause with default size 2.
    */
   public CLClause() {
     this.lits = new LNGIntVector(2);
   }
 
   /**
-   * Returns the freeVars (number of literals) of this clause.
-   * @return the freeVars of this clause
+   * Returns the size (number of literals) of this clause.
+   * @return the size of this clause
    */
   public int size() {
     return this.lits.size();

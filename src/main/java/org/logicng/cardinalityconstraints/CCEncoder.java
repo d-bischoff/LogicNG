@@ -32,12 +32,7 @@ import org.logicng.collections.ImmutableFormulaList;
 import org.logicng.configurations.Configuration;
 import org.logicng.configurations.ConfigurationType;
 import org.logicng.datastructures.EncodingResult;
-import org.logicng.formulas.FType;
-import org.logicng.formulas.Formula;
-import org.logicng.formulas.FormulaFactory;
-import org.logicng.formulas.Literal;
-import org.logicng.formulas.PBConstraint;
-import org.logicng.formulas.Variable;
+import org.logicng.formulas.*;
 import org.logicng.util.Pair;
 
 import java.util.ArrayList;
@@ -84,17 +79,6 @@ public class CCEncoder {
   private CCEXKCardinalityNetwork exkCardinalityNetwork;
 
   /**
-   * Constructs a new cardinality constraint encoder with a given configuration.
-   * @param f      the formula factory
-   * @param config the configuration
-   */
-  public CCEncoder(final FormulaFactory f, final CCConfig config) {
-    this.f = f;
-    this.config = config;
-    this.defaultConfig = new CCConfig.Builder().build();
-  }
-
-  /**
    * Constructs a new cardinality constraint encoder which uses the configuration of the formula factory.
    * @param f the formula factory
    */
@@ -103,17 +87,14 @@ public class CCEncoder {
   }
 
   /**
-   * Converts a literal array to a variable array
-   * <p>
-   * ATTENTION: this only works if because the {@code isCC} method checks, that there are only positive literals.
-   * @param lits the literals
-   * @return the variables
+   * Constructs a new cardinality constraint encoder with a given configuration.
+   * @param f      the formula factory
+   * @param config the configuration
    */
-  private static Variable[] litsAsVars(final Literal[] lits) {
-    final Variable[] vars = new Variable[lits.length];
-    for (int i = 0; i < vars.length; i++)
-      vars[i] = lits[i].variable();
-    return vars;
+  public CCEncoder(final FormulaFactory f, final CCConfig config) {
+    this.f = f;
+    this.config = config;
+    this.defaultConfig = new CCConfig.Builder().build();
   }
 
   /**
@@ -182,6 +163,120 @@ public class CCEncoder {
   }
 
   /**
+   * Converts a literal array to a variable array
+   * <p>
+   * ATTENTION: this only works if because the {@code isCC} method checks, that there are only positive literals.
+   * @param lits the literals
+   * @return the variables
+   */
+  private static Variable[] litsAsVars(final Literal[] lits) {
+    final Variable[] vars = new Variable[lits.length];
+    for (int i = 0; i < vars.length; i++)
+      vars[i] = lits[i].variable();
+    return vars;
+  }
+
+  /**
+   * Encodes an at-most-k constraint for incremental usage.
+   *
+   * @param result
+   *     the result
+   * @param vars
+   *     the variables of the constraint
+   * @param rhs
+   *     the right hand side of the constraint
+   *
+   * @return the incremental data
+   */
+  private CCIncrementalData amkIncremental(final EncodingResult result, final Variable[] vars, int rhs) {
+    if (rhs < 0)
+      throw new IllegalArgumentException("Invalid right hand side of cardinality constraint: " + rhs);
+    if (rhs >= vars.length) // there is no constraint
+      return null;
+    if (rhs == 0) { // no variable can be true
+      for (final Variable var : vars)
+        result.addClause(var.negate());
+      return null;
+    }
+    switch (this.config().amkEncoder) {
+      case TOTALIZER:
+        if (this.amkTotalizer == null)
+          this.amkTotalizer = new CCAMKTotalizer();
+        this.amkTotalizer.build(result, vars, rhs);
+        return this.amkTotalizer.incrementalData();
+      case MODULAR_TOTALIZER:
+        if (this.amkModularTotalizer == null)
+          this.amkModularTotalizer = new CCAMKModularTotalizer(this.f);
+        this.amkModularTotalizer.build(result, vars, rhs);
+        return this.amkModularTotalizer.incrementalData();
+      case CARDINALITY_NETWORK:
+        if (this.amkCardinalityNetwork == null)
+          this.amkCardinalityNetwork = new CCAMKCardinalityNetwork();
+        this.amkCardinalityNetwork.buildForIncremental(result, vars, rhs);
+        return this.amkCardinalityNetwork.incrementalData();
+      case BEST:
+        this.bestAMK(vars.length).build(result, vars, rhs);
+        return this.bestAMK(vars.length).incrementalData();
+      default:
+        throw new IllegalStateException("Unknown at-most-k encoder: " + this.config().amkEncoder);
+    }
+  }
+
+  /**
+   * Encodes an at-lest-k constraint for incremental usage.
+   *
+   * @param result
+   *     the result
+   * @param vars
+   *     the variables of the constraint
+   * @param rhs
+   *     the right hand side of the constraint
+   *
+   * @return the incremental data
+   */
+  private CCIncrementalData alkIncremental(final EncodingResult result, final Variable[] vars, int rhs) {
+    if (rhs < 0)
+      throw new IllegalArgumentException("Invalid right hand side of cardinality constraint: " + rhs);
+    if (rhs > vars.length) {
+      result.addClause();
+      return null;
+    }
+    if (rhs == 0)
+      return null;
+    if (rhs == 1) {
+      result.addClause((Literal[]) vars);
+      return null;
+    }
+    if (rhs == vars.length) {
+      for (final Variable var : vars)
+        result.addClause(var);
+      return null;
+    }
+    switch (this.config().alkEncoder) {
+      case TOTALIZER:
+        if (this.alkTotalizer == null)
+          this.alkTotalizer = new CCALKTotalizer();
+        this.alkTotalizer.build(result, vars, rhs);
+        return this.alkTotalizer.incrementalData();
+      case MODULAR_TOTALIZER:
+        if (this.alkModularTotalizer == null)
+          this.alkModularTotalizer = new CCALKModularTotalizer(this.f);
+        this.alkModularTotalizer.build(result, vars, rhs);
+        return this.alkModularTotalizer.incrementalData();
+      case CARDINALITY_NETWORK:
+        if (this.alkCardinalityNetwork == null)
+          this.alkCardinalityNetwork = new CCALKCardinalityNetwork();
+        this.alkCardinalityNetwork.buildForIncremental(result, vars, rhs);
+        return this.alkCardinalityNetwork.incrementalData();
+      case BEST:
+        this.bestALK(vars.length).build(result, vars, rhs);
+        return this.bestALK(vars.length).incrementalData();
+      default:
+        throw new IllegalStateException("Unknown at-least-k encoder: " + this.config().alkEncoder);
+    }
+  }
+
+  /**
    * Returns the current configuration of this encoder.  If the encoder was constructed with a given configuration, this
    * configuration will always be used.  Otherwise the current configuration of the formula factory is used or - if not
    * present - the default configuration.
@@ -192,6 +287,38 @@ public class CCEncoder {
       return this.config;
     Configuration ccConfig = this.f.configurationFor(ConfigurationType.CC_ENCODER);
     return ccConfig != null ? (CCConfig) ccConfig : this.defaultConfig;
+  }
+
+  /**
+   * Returns the best at-most-k encoder for a given number of variables.  The valuation is based on theoretical and
+   * practical observations.  Currently the modular totalizer is the best encoder for all sizes and therefore is always
+   * chosen.
+   *
+   * @param n
+   *     the number of variables
+   *
+   * @return the best at-most-one encoder
+   */
+  private CCAtMostK bestAMK(int n) {
+    if (this.amkModularTotalizer == null)
+      this.amkModularTotalizer = new CCAMKModularTotalizer(this.f);
+    return this.amkModularTotalizer;
+  }
+
+  /**
+   * Returns the best at-least-k encoder for a given number of variables.  The valuation is based on theoretical and
+   * practical observations.  Currently the modular totalizer is the best encoder for all sizes and therefore is always
+   * chosen.
+   *
+   * @param n
+   *     the number of variables
+   *
+   * @return the best at-most-one encoder
+   */
+  private CCAtLeastK bestALK(int n) {
+    if (this.alkModularTotalizer == null)
+      this.alkModularTotalizer = new CCALKModularTotalizer(this.f);
+    return this.alkModularTotalizer;
   }
 
   /**
@@ -287,7 +414,7 @@ public class CCEncoder {
               groupSize = (int) Math.sqrt(vars.length);
               break;
             default:
-              throw new IllegalStateException("Unkown bimander group freeVars: " + this.config().bimanderGroupSize);
+              throw new IllegalStateException("Unkown bimander group size: " + this.config().bimanderGroupSize);
           }
           this.amoBimander = new CCAMOBimander(groupSize);
         }
@@ -360,47 +487,6 @@ public class CCEncoder {
   }
 
   /**
-   * Encodes an at-most-k constraint for incremental usage.
-   * @param result the result
-   * @param vars   the variables of the constraint
-   * @param rhs    the right hand side of the constraint
-   * @return the incremental data
-   */
-  private CCIncrementalData amkIncremental(final EncodingResult result, final Variable[] vars, int rhs) {
-    if (rhs < 0)
-      throw new IllegalArgumentException("Invalid right hand side of cardinality constraint: " + rhs);
-    if (rhs >= vars.length) // there is no constraint
-      return null;
-    if (rhs == 0) { // no variable can be true
-      for (final Variable var : vars)
-        result.addClause(var.negate());
-      return null;
-    }
-    switch (this.config().amkEncoder) {
-      case TOTALIZER:
-        if (this.amkTotalizer == null)
-          this.amkTotalizer = new CCAMKTotalizer();
-        this.amkTotalizer.build(result, vars, rhs);
-        return this.amkTotalizer.incrementalData();
-      case MODULAR_TOTALIZER:
-        if (this.amkModularTotalizer == null)
-          this.amkModularTotalizer = new CCAMKModularTotalizer(this.f);
-        this.amkModularTotalizer.build(result, vars, rhs);
-        return this.amkModularTotalizer.incrementalData();
-      case CARDINALITY_NETWORK:
-        if (this.amkCardinalityNetwork == null)
-          this.amkCardinalityNetwork = new CCAMKCardinalityNetwork();
-        this.amkCardinalityNetwork.buildForIncremental(result, vars, rhs);
-        return this.amkCardinalityNetwork.incrementalData();
-      case BEST:
-        this.bestAMK(vars.length).build(result, vars, rhs);
-        return this.bestAMK(vars.length).incrementalData();
-      default:
-        throw new IllegalStateException("Unknown at-most-k encoder: " + this.config().amkEncoder);
-    }
-  }
-
-  /**
    * Encodes an at-lest-k constraint.
    * @param result the result
    * @param vars   the variables of the constraint
@@ -443,55 +529,6 @@ public class CCEncoder {
       case BEST:
         this.bestALK(vars.length).build(result, vars, rhs);
         break;
-      default:
-        throw new IllegalStateException("Unknown at-least-k encoder: " + this.config().alkEncoder);
-    }
-  }
-
-  /**
-   * Encodes an at-lest-k constraint for incremental usage.
-   * @param result the result
-   * @param vars   the variables of the constraint
-   * @param rhs    the right hand side of the constraint
-   * @return the incremental data
-   */
-  private CCIncrementalData alkIncremental(final EncodingResult result, final Variable[] vars, int rhs) {
-    if (rhs < 0)
-      throw new IllegalArgumentException("Invalid right hand side of cardinality constraint: " + rhs);
-    if (rhs > vars.length) {
-      result.addClause();
-      return null;
-    }
-    if (rhs == 0)
-      return null;
-    if (rhs == 1) {
-      result.addClause((Literal[]) vars);
-      return null;
-    }
-    if (rhs == vars.length) {
-      for (final Variable var : vars)
-        result.addClause(var);
-      return null;
-    }
-    switch (this.config().alkEncoder) {
-      case TOTALIZER:
-        if (this.alkTotalizer == null)
-          this.alkTotalizer = new CCALKTotalizer();
-        this.alkTotalizer.build(result, vars, rhs);
-        return this.alkTotalizer.incrementalData();
-      case MODULAR_TOTALIZER:
-        if (this.alkModularTotalizer == null)
-          this.alkModularTotalizer = new CCALKModularTotalizer(this.f);
-        this.alkModularTotalizer.build(result, vars, rhs);
-        return this.alkModularTotalizer.incrementalData();
-      case CARDINALITY_NETWORK:
-        if (this.alkCardinalityNetwork == null)
-          this.alkCardinalityNetwork = new CCALKCardinalityNetwork();
-        this.alkCardinalityNetwork.buildForIncremental(result, vars, rhs);
-        return this.alkCardinalityNetwork.incrementalData();
-      case BEST:
-        this.bestALK(vars.length).build(result, vars, rhs);
-        return this.bestALK(vars.length).incrementalData();
       default:
         throw new IllegalStateException("Unknown at-least-k encoder: " + this.config().alkEncoder);
     }
@@ -556,32 +593,6 @@ public class CCEncoder {
         this.amoProduct = new CCAMOProduct(this.config().productRecursiveBound);
       return this.amoProduct;
     }
-  }
-
-  /**
-   * Returns the best at-most-k encoder for a given number of variables.  The valuation is based on theoretical and
-   * practical observations.  Currently the modular totalizer is the best encoder for all sizes and therefore is always
-   * chosen.
-   * @param n the number of variables
-   * @return the best at-most-one encoder
-   */
-  private CCAtMostK bestAMK(int n) {
-    if (this.amkModularTotalizer == null)
-      this.amkModularTotalizer = new CCAMKModularTotalizer(this.f);
-    return this.amkModularTotalizer;
-  }
-
-  /**
-   * Returns the best at-least-k encoder for a given number of variables.  The valuation is based on theoretical and
-   * practical observations.  Currently the modular totalizer is the best encoder for all sizes and therefore is always
-   * chosen.
-   * @param n the number of variables
-   * @return the best at-most-one encoder
-   */
-  private CCAtLeastK bestALK(int n) {
-    if (this.alkModularTotalizer == null)
-      this.alkModularTotalizer = new CCALKModularTotalizer(this.f);
-    return this.alkModularTotalizer;
   }
 
   /**

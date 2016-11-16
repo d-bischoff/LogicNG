@@ -33,7 +33,7 @@ import org.logicng.formulas.Variable;
 
 /**
  * Encodes that at most one variable is assigned value true.  Uses the 'naive' encoding with no introduction
- * of new variables but quadratic freeVars.
+ * of new variables but quadratic size.
  * @version 1.1
  * @since 1.0
  */
@@ -43,7 +43,7 @@ final class CCAMOPure implements CCAtMostOne {
    * Constructs the naive AMO encoder.
    */
   CCAMOPure() {
-    // intentionally left noFreeVars
+    // intentionally left empty
   }
 
   @Override

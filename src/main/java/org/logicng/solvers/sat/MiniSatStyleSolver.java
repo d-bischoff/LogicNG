@@ -49,7 +49,10 @@ import org.logicng.collections.LNGIntVector;
 import org.logicng.collections.LNGVector;
 import org.logicng.datastructures.Tristate;
 import org.logicng.handlers.SATHandler;
-import org.logicng.solvers.datastructures.*;
+import org.logicng.solvers.datastructures.LNGHeap;
+import org.logicng.solvers.datastructures.MSClause;
+import org.logicng.solvers.datastructures.MSVariable;
+import org.logicng.solvers.datastructures.MSWatcher;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -76,7 +79,7 @@ public abstract class MiniSatStyleSolver {
   protected LNGVector<MSClause> learnts;
   protected LNGVector<LNGVector<MSWatcher>> watches;
   protected LNGVector<MSVariable> vars;
-  protected VariableOrdering orderHeap;
+  protected LNGHeap orderHeap;
   protected LNGIntVector trail;
   protected LNGIntVector trailLim;
   protected LNGBooleanVector model;
@@ -119,65 +122,6 @@ public abstract class MiniSatStyleSolver {
   protected MiniSatStyleSolver(final MiniSatConfig config) {
     this.config = config;
     this.initialize();
-  }
-
-  /**
-   * Creates a literal for a given variable number and literal.
-   * @param var  the variable number
-   * @param sign {@code true} if the literal is negative, {@code false} otherwise
-   * @return the literal (as integer value)
-   */
-  public static int mkLit(int var, boolean sign) {
-    return var + var + (sign ? 1 : 0);
-  }
-
-  /**
-   * Negates a given literal.
-   * @param lit the literal
-   * @return the negated literal
-   */
-  public static int not(int lit) {
-    return lit ^ 1;
-  }
-
-  /**
-   * Returns {@code true} if a given literal is negated, {@code false} otherwise.
-   * @param lit the literal
-   * @return {@code true} if the literal is negated
-   */
-  public static boolean sign(int lit) {
-    return (lit & 1) == 1;
-  }
-
-  /**
-   * Returns the variable index for a given literal.
-   * @param lit the literal
-   * @return the variable index of the literal
-   */
-  public static int var(int lit) {
-    return lit >> 1;
-  }
-
-  /**
-   * Computes the next number in the Luby sequence.
-   * @param y the restart increment
-   * @param x the current number of restarts
-   * @return the next number in the Luby sequence
-   */
-  protected static double luby(double y, int x) {
-    int intX = x;
-    int size = 1;
-    int seq = 0;
-    while (size < intX + 1) {
-      seq++;
-      size = 2 * size + 1;
-    }
-    while (size - 1 != intX) {
-      size = (size - 1) >> 1;
-      seq--;
-      intX = intX % size;
-    }
-    return Math.pow(y, seq);
   }
 
   /**
@@ -228,21 +172,43 @@ public abstract class MiniSatStyleSolver {
   }
 
   /**
-   * Returns the variable for a given literal.
+   * Negates a given literal.
    * @param lit the literal
-   * @return the variable of the literal
+   * @return the negated literal
    */
-  protected MSVariable v(int lit) {
-    return this.vars.get(lit >> 1);
+  public static int not(int lit) {
+    return lit ^ 1;
   }
 
   /**
-   * Returns the assigned value of a given literal.
+   * Returns the variable index for a given literal.
    * @param lit the literal
-   * @return the assigned value of the literal
+   * @return the variable index of the literal
    */
-  protected Tristate value(int lit) {
-    return sign(lit) ? Tristate.negate(this.v(lit).assignment()) : this.v(lit).assignment();
+  public static int var(int lit) {
+    return lit >> 1;
+  }
+
+  /**
+   * Computes the next number in the Luby sequence.
+   * @param y the restart increment
+   * @param x the current number of restarts
+   * @return the next number in the Luby sequence
+   */
+  protected static double luby(double y, int x) {
+    int intX = x;
+    int size = 1;
+    int seq = 0;
+    while (size < intX + 1) {
+      seq++;
+      size = 2 * size + 1;
+    }
+    while (size - 1 != intX) {
+      size = (size - 1) >> 1;
+      seq--;
+      intX = intX % size;
+    }
+    return Math.pow(y, seq);
   }
 
   /**
@@ -312,16 +278,6 @@ public abstract class MiniSatStyleSolver {
   public abstract boolean addClause(final LNGIntVector ps);
 
   /**
-   * Solves the formula currently stored in the solver.  Returns {@link Tristate#TRUE} if the formula is satisfiable (SAT),
-   * {@link Tristate#FALSE} if the formula is unsatisfiable (UNSAT), or {@link Tristate#UNDEF} if the computation was canceled
-   * by a {@link SATHandler}.  If {@code null} is passed as handler, the solver will run until the satisfiability is decided.
-   * @param handler a sat handler
-   * @return {@link Tristate#TRUE} if the formula is satisfiable, {@link Tristate#FALSE} if the formula is not satisfiable, or
-   * {@link Tristate#UNDEF} if the computation was canceled.
-   */
-  public abstract Tristate solve(final SATHandler handler);
-
-  /**
    * Solves the formula currently stored in the solver together with the given assumption literals.  Returns
    * {@link Tristate#TRUE} if the formula and the assumptions are satisfiable (SAT), {@link Tristate#FALSE} if the formula and the
    * assumptions are not satisfiable together (UNSAT), or {@link Tristate#UNDEF} if the computation was canceled by a
@@ -339,12 +295,22 @@ public abstract class MiniSatStyleSolver {
   }
 
   /**
+   * Solves the formula currently stored in the solver.  Returns {@link Tristate#TRUE} if the formula is satisfiable (SAT),
+   * {@link Tristate#FALSE} if the formula is unsatisfiable (UNSAT), or {@link Tristate#UNDEF} if the computation was canceled
+   * by a {@link SATHandler}.  If {@code null} is passed as handler, the solver will run until the satisfiability is decided.
+   * @param handler a sat handler
+   * @return {@link Tristate#TRUE} if the formula is satisfiable, {@link Tristate#FALSE} if the formula is not satisfiable, or
+   * {@link Tristate#UNDEF} if the computation was canceled.
+   */
+  public abstract Tristate solve(final SATHandler handler);
+
+  /**
    * Resets the solver state.
    */
   public abstract void reset();
 
   /**
-   * Returns the current model of the solver or an noFreeVars vector if there is none.
+   * Returns the current model of the solver or an empty vector if there is none.
    * @return the current model of the solver
    */
   public LNGBooleanVector model() {
@@ -352,7 +318,7 @@ public abstract class MiniSatStyleSolver {
   }
 
   /**
-   * Returns the current conflict of the solver or an noFreeVars vector if there is none.
+   * Returns the current conflict of the solver or an empty vector if there is none.
    * @return the current conflict of the solver
    */
   public LNGIntVector conflict() {
@@ -380,14 +346,6 @@ public abstract class MiniSatStyleSolver {
    * @throws IllegalStateException         if the solver is not in incremental mode
    */
   public abstract void loadState(int[] state);
-
-  /**
-   * Returns the number of variables of the solver.
-   * @return the number of variables of the solver
-   */
-  public int nVars() {
-    return this.vars.size();
-  }
 
   /**
    * Returns the number of assigned variables.
@@ -419,22 +377,32 @@ public abstract class MiniSatStyleSolver {
    * @param x the variable index
    */
   protected void insertVarOrder(int x) {
-    if (!this.orderHeap.isMaybeFree(x) && this.vars.get(x).decision())
-      this.orderHeap.setFree(x);
+    if (!this.orderHeap.inHeap(x) && this.vars.get(x).decision())
+      this.orderHeap.insert(x);
   }
 
   /**
    * Picks the next branching literal.
    * @return the literal or -1 if there are no unassigned literals left
    */
-  protected int pickBranchLit() { //TODO das muss/kann eine fixe Ordnung sein. Ob die Implementierung mit dem Heap dann noch die Richtige ist weiß ich nicht.
+  protected int pickBranchLit() {
     int next = -1;
     while (next == -1 || this.vars.get(next).assignment() != Tristate.UNDEF || !this.vars.get(next).decision())
-      if (this.orderHeap.noFreeVars())
+      if (this.orderHeap.empty())
         return -1;
       else
-        next = this.orderHeap.getNextFreeVariableMarkAssigned();
-    return mkLit(next, true);
+        next = this.orderHeap.removeMin();
+    return mkLit(next, this.vars.get(next).polarity());
+  }
+
+  /**
+   * Creates a literal for a given variable number and literal.
+   * @param var  the variable number
+   * @param sign {@code true} if the literal is negative, {@code false} otherwise
+   * @return the literal (as integer value)
+   */
+  public static int mkLit(int var, boolean sign) {
+    return var + var + (sign ? 1 : 0);
   }
 
   /**
@@ -465,8 +433,8 @@ public abstract class MiniSatStyleSolver {
         variable.rescaleActivity();
       this.varInc *= 1e-100;
     }
-    if (this.orderHeap.isMaybeFree(v))
-      this.orderHeap.accelerate(v);
+    if (this.orderHeap.inHeap(v))
+      this.orderHeap.decrease(v);
   }
 
   /**
@@ -477,7 +445,15 @@ public abstract class MiniSatStyleSolver {
     for (int v = 0; v < this.nVars(); v++)
       if (this.vars.get(v).decision() && this.vars.get(v).assignment() == Tristate.UNDEF)
         vs.push(v);
-    this.orderHeap.initialize(vs);
+    this.orderHeap.build(vs);
+  }
+
+  /**
+   * Returns the number of variables of the solver.
+   * @return the number of variables of the solver
+   */
+  public int nVars() {
+    return this.vars.size();
   }
 
   /**
@@ -487,6 +463,39 @@ public abstract class MiniSatStyleSolver {
    */
   protected boolean locked(final MSClause c) {
     return value(c.get(0)) == Tristate.TRUE && v(c.get(0)).reason() != null && v(c.get(0)).reason() == c;
+  }
+
+  /**
+   * Returns the assigned value of a given literal.
+   * @param lit the literal
+   * @return the assigned value of the literal
+   */
+  protected Tristate value(int lit) {
+    return sign(lit) ? Tristate.negate(this.v(lit).assignment()) : this.v(lit).assignment();
+  }
+
+  /**
+   * Returns the variable for a given literal.
+   *
+   * @param lit
+   *     the literal
+   *
+   * @return the variable of the literal
+   */
+  protected MSVariable v(int lit) {
+    return this.vars.get(lit >> 1);
+  }
+
+  /**
+   * Returns {@code true} if a given literal is negated, {@code false} otherwise.
+   *
+   * @param lit
+   *     the literal
+   *
+   * @return {@code true} if the literal is negated
+   */
+  public static boolean sign(int lit) {
+    return (lit & 1) == 1;
   }
 
   /**
@@ -599,7 +608,7 @@ public abstract class MiniSatStyleSolver {
     sb.append("#learnts      ").append(learnts.size()).append("\n");
     sb.append("#watches      ").append(watches.size()).append("\n");
     sb.append("#vars         ").append(vars.size()).append("\n");
-    //sb.append("#orderheap    ").append(orderHeap.freeVars()).append("\n");
+    sb.append("#orderheap    ").append(orderHeap.size()).append("\n");
     sb.append("#trail        ").append(trail.size()).append("\n");
     sb.append("#trailLim     ").append(trailLim.size()).append("\n");
 

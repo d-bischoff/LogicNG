@@ -29,25 +29,11 @@
 package org.logicng.collections;
 
 import org.logicng.datastructures.Substitution;
-import org.logicng.formulas.FType;
-import org.logicng.formulas.Formula;
-import org.logicng.formulas.FormulaFactory;
-import org.logicng.formulas.Literal;
-import org.logicng.formulas.Variable;
+import org.logicng.formulas.*;
 import org.logicng.functions.LiteralProfileFunction;
 import org.logicng.functions.VariableProfileFunction;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * A list of formulas.  This can represent the operands of an n-ary operator, a CNF, a DNF, a constraint, etc.
@@ -166,16 +152,16 @@ public final class ImmutableFormulaList implements Iterable<Formula> {
   }
 
   /**
-   * Returns the freeVars of this formula list.
-   * @return the freeVars of this formula list
+   * Returns the size of this formula list.
+   * @return the size of this formula list
    */
   public int size() {
     return this.formulas.length;
   }
 
   /**
-   * Returns {@code true} if this formula list is noFreeVars, {@code false} otherwise.
-   * @return {@code true} if this formula list is noFreeVars
+   * Returns {@code true} if this formula list is empty, {@code false} otherwise.
+   * @return {@code true} if this formula list is empty
    */
   public boolean empty() {
     return this.formulas.length == 0;

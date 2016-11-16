@@ -38,17 +38,6 @@ import org.logicng.configurations.ConfigurationType;
  */
 public final class CleaneLingConfig extends Configuration {
 
-  /**
-   * The different methods for clause bumping.
-   * {@code NONE} - no bumping
-   * {@code INC} - number of times a clauses was involved in conflict analysis
-   * {@code LRU} - least recently used conflict clauses are kicked out
-   * {@code AVG} - running average of most recently used
-   */
-  public enum ClauseBumping {
-    NONE, INC, LRU, AVG
-  }
-
   final boolean block;
   final int blkwait;
   final int blkrtc;
@@ -81,7 +70,6 @@ public final class CleaneLingConfig extends Configuration {
   final boolean searchfirst;
   final int scincfact;
   final int stepslim;
-
   /**
    * Constructs a new CleaneLing configuration from a given builder.
    * @param builder the builder
@@ -170,6 +158,17 @@ public final class CleaneLingConfig extends Configuration {
   }
 
   /**
+   * The different methods for clause bumping.
+   * {@code NONE} - no bumping
+   * {@code INC} - number of times a clauses was involved in conflict analysis
+   * {@code LRU} - least recently used conflict clauses are kicked out
+   * {@code AVG} - running average of most recently used
+   */
+  public enum ClauseBumping {
+    NONE, INC, LRU, AVG
+  }
+
+  /**
    * The builder for a MiniSAT configuration.
    */
   public static class Builder {
@@ -247,8 +246,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the backward-subsumption clause freeVars limit.  The default value is 10,000.
-     * @param bwClauseLim the backward-subsumption clause freeVars limit
+     * Sets the backward-subsumption clause size limit.  The default value is 10,000.
+     * @param bwClauseLim the backward-subsumption clause size limit
      * @return the builder
      */
     public Builder bwClauseLim(int bwClauseLim) {
@@ -337,8 +336,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the maximum antecedent freeVars in BVE.  The default value is 1000.
-     * @param bvElimClauseLim the maximum antecedent freeVars in BVE
+     * Sets the maximum antecedent size in BVE.  The default value is 1000.
+     * @param bvElimClauseLim the maximum antecedent size in BVE
      * @return the builder
      */
     public Builder bvElimClauseLim(int bvElimClauseLim) {
@@ -357,8 +356,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the glue of which freeVars clauses are kept.  The default value is 1.
-     * @param glueKeep the glue of which freeVars clauses are kept
+     * Sets the glue of which size clauses are kept.  The default value is 1.
+     * @param glueKeep the glue of which size clauses are kept
      * @return the builder
      */
     public Builder glueKeep(int glueKeep) {
@@ -468,8 +467,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the freeVars penalty for the number of clauses.  The default value is 1 &lt;&lt; 17.
-     * @param sizePenalty the freeVars penalty for the number of clauses
+     * Sets the size penalty for the number of clauses.  The default value is 1 &lt;&lt; 17.
+     * @param sizePenalty the size penalty for the number of clauses
      * @return the builder
      */
     public Builder sizePenalty(int sizePenalty) {
@@ -478,8 +477,8 @@ public final class CleaneLingConfig extends Configuration {
     }
 
     /**
-     * Sets the maximum logarithmic freeVars penalty.  The default value is 5.
-     * @param sizeMaxPenalty the maximum logarithmic freeVars penalty
+     * Sets the maximum logarithmic size penalty.  The default value is 5.
+     * @param sizeMaxPenalty the maximum logarithmic size penalty
      * @return the builder
      */
     public Builder sizeMaxPenalty(int sizeMaxPenalty) {

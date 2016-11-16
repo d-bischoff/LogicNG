@@ -28,18 +28,9 @@
 
 package org.logicng.io.writers;
 
-import org.logicng.formulas.BinaryOperator;
-import org.logicng.formulas.Formula;
-import org.logicng.formulas.Literal;
-import org.logicng.formulas.NAryOperator;
-import org.logicng.formulas.Not;
-import org.logicng.formulas.PBConstraint;
+import org.logicng.formulas.*;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +46,7 @@ public final class FormulaDotFileWriter {
    * Private constructor.
    */
   private FormulaDotFileWriter() {
-    // Intentionally left noFreeVars.
+    // Intentionally left empty.
   }
 
   /**

@@ -70,8 +70,8 @@ final class CCAMOCommander implements CCAtMostOne {
   private LNGVector<Literal> currentLiterals;
 
   /**
-   * Constructs the commander AMO encoder with a given group freeVars.
-   * @param k the group freeVars for the encoding
+   * Constructs the commander AMO encoder with a given group size.
+   * @param k the group size for the encoding
    */
   CCAMOCommander(int k) {
     this.k = k;
