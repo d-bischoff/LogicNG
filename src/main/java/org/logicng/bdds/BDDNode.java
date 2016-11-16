@@ -26,66 +26,46 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.util;
+package org.logicng.bdds;
 
-import java.util.Objects;
+import org.logicng.formulas.Formula;
+
+import java.util.Set;
 
 /**
- * Data structure for a pair.
- * @param <A> the type parameter of the first entry
- * @param <B> the type parameter of the second entry
- * @version 1.0
- * @since 1.0
+ * A node in a BDD.
+ * @version 1.2
+ * @since 1.2
  */
-public class Pair<A, B> {
-
-  protected final A a;
-  protected final B b;
+public interface BDDNode {
 
   /**
-   * Constructs a new pair.
-   * @param a the first entry
-   * @param b the second entry
+   * Returns the label of the node.  This can either be a variable or a constant.
+   * @return the label of the node
    */
-  public Pair(final A a, final B b) {
-    this.a = a;
-    this.b = b;
-  }
+  Formula label();
 
   /**
-   * Returns the first entry of this pair.
-   * @return the first entry
+   * Returns {@code true} if this node is an inner node, {@code false} if it is a terminal node.
+   * @return {@code true} if this node is an inner node, {@code false} if it is a terminal node
    */
-  public A first() {
-    return a;
-  }
+  boolean isInnerNode();
 
   /**
-   * Returns the second entry of this pair.
-   * @return the second entry
+   * Returns the node of the low edge.
+   * @return the node of the low edge
    */
-  public B second() {
-    return b;
-  }
+  BDDNode low();
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(a, b);
-  }
+  /**
+   * Returns the node of the high edge.
+   * @return the node of the high edge
+   */
+  BDDNode high();
 
-  @Override
-  public boolean equals(final Object other) {
-    if (this == other)
-      return true;
-    if (other instanceof Pair) {
-      Pair o = (Pair) other;
-      return Objects.equals(b, o.b) && Objects.equals(a, o.a);
-    }
-    return false;
-  }
-
-  @Override
-  public String toString() {
-    return String.format("<%s, %s>", a, b);
-  }
+  /**
+   * Returns all nodes of the sub-BDD starting at this node.
+   * @return all nodes of the sub-BDD starting at this node
+   */
+  Set<BDDNode> nodes();
 }

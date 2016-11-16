@@ -26,66 +26,53 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.util;
+package org.logicng.testutils;
 
-import java.util.Objects;
+import org.logicng.formulas.Formula;
+import org.logicng.formulas.FormulaFactory;
+import org.logicng.formulas.Literal;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * Data structure for a pair.
- * @param <A> the type parameter of the first entry
- * @param <B> the type parameter of the second entry
+ * A generator for pigeon hole formulas.
  * @version 1.0
  * @since 1.0
  */
-public class Pair<A, B> {
+public class PigeonHoleGenerator {
 
-  protected final A a;
-  protected final B b;
+  private final FormulaFactory f;
 
-  /**
-   * Constructs a new pair.
-   * @param a the first entry
-   * @param b the second entry
-   */
-  public Pair(final A a, final B b) {
-    this.a = a;
-    this.b = b;
+  public PigeonHoleGenerator(final FormulaFactory f) {
+    this.f = f;
   }
 
-  /**
-   * Returns the first entry of this pair.
-   * @return the first entry
-   */
-  public A first() {
-    return a;
+  public Formula generate(int n) {
+    return f.and(placeInSomeHole(n), onlyOnePigeonInHole(n));
   }
 
-  /**
-   * Returns the second entry of this pair.
-   * @return the second entry
-   */
-  public B second() {
-    return b;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(a, b);
-  }
-
-  @Override
-  public boolean equals(final Object other) {
-    if (this == other)
-      return true;
-    if (other instanceof Pair) {
-      Pair o = (Pair) other;
-      return Objects.equals(b, o.b) && Objects.equals(a, o.a);
+  private Formula placeInSomeHole(int n) {
+    if (n == 1)
+      return f.and(f.variable("v1"), f.variable("v2"));
+    List<Formula> ors = new LinkedList<>();
+    for (int i = 1; i <= n + 1; i++) {
+      List<Literal> orOps = new LinkedList<>();
+      for (int j = 1; j <= n; j++)
+        orOps.add(f.variable("v" + (n * (i - 1) + j)));
+      ors.add(f.or(orOps));
     }
-    return false;
+    return f.and(ors);
   }
 
-  @Override
-  public String toString() {
-    return String.format("<%s, %s>", a, b);
+  private Formula onlyOnePigeonInHole(int n) {
+    if (n == 1)
+      return f.or(f.literal("v1", false), f.literal("v2", false));
+    List<Formula> ors = new LinkedList<>();
+    for (int j = 1; j <= n; j++)
+      for (int i = 1; i <= n; i++)
+        for (int k = i + 1; k <= n + 1; k++)
+          ors.add(f.or(f.literal("v" + (n * (i - 1) + j), false), f.literal("v" + (n * (k - 1) + j), false)));
+    return f.and(ors);
   }
 }

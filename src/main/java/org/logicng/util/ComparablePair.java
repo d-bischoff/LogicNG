@@ -26,53 +26,29 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.solvers.sat;
-
-import org.logicng.formulas.Formula;
-import org.logicng.formulas.FormulaFactory;
-import org.logicng.formulas.Literal;
-
-import java.util.LinkedList;
-import java.util.List;
+package org.logicng.util;
 
 /**
- * A generator for pigeon hole formulas.
- * @version 1.0
- * @since 1.0
+ * Data structure for a comparable pair.
+ * @param <A> the type parameter of the first entry
+ * @param <B> the type parameter of the second entry
+ * @version 1.2
+ * @since 1.2
  */
-public class PigeonHoleGenerator {
+public final class ComparablePair<A extends Comparable<A>, B extends Comparable<B>> extends Pair<A, B> implements Comparable<ComparablePair<A, B>> {
 
-  private final FormulaFactory f;
-
-  public PigeonHoleGenerator(final FormulaFactory f) {
-    this.f = f;
+  /**
+   * Constructs a new comparable pair.
+   * @param a the first entry
+   * @param b the second entry
+   */
+  public ComparablePair(final A a, final B b) {
+    super(a, b);
   }
 
-  public Formula generate(int n) {
-    return f.and(placeInSomeHole(n), onlyOnePigeonInHole(n));
-  }
-
-  private Formula placeInSomeHole(int n) {
-    if (n == 1)
-      return f.and(f.variable("v1"), f.variable("v2"));
-    List<Formula> ors = new LinkedList<>();
-    for (int i = 1; i <= n + 1; i++) {
-      List<Literal> orOps = new LinkedList<>();
-      for (int j = 1; j <= n; j++)
-        orOps.add(f.variable("v" + (n * (i - 1) + j)));
-      ors.add(f.or(orOps));
-    }
-    return f.and(ors);
-  }
-
-  private Formula onlyOnePigeonInHole(int n) {
-    if (n == 1)
-      return f.or(f.literal("v1", false), f.literal("v2", false));
-    List<Formula> ors = new LinkedList<>();
-    for (int j = 1; j <= n; j++)
-      for (int i = 1; i <= n; i++)
-        for (int k = i + 1; k <= n + 1; k++)
-          ors.add(f.or(f.literal("v" + (n * (i - 1) + j), false), f.literal("v" + (n * (k - 1) + j), false)));
-    return f.and(ors);
+  @Override
+  public int compareTo(final ComparablePair<A, B> o) {
+    int compare = this.a.compareTo(o.a);
+    return compare != 0 ? compare : this.b.compareTo(o.b);
   }
 }

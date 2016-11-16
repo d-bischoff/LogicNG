@@ -49,6 +49,7 @@ import org.logicng.solvers.CleaneLing;
 import org.logicng.solvers.MiniSat;
 import org.logicng.solvers.SATSolver;
 import org.logicng.solvers.SolverState;
+import org.logicng.testutils.PigeonHoleGenerator;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -613,17 +614,17 @@ public class SATTest {
     PrintStream ps = new PrintStream(baos);
     clms.printSolverState(ps);
     String expected = String.format("level=0%n" +
-        "next=0%n" +
-        "ignore=null%n" +
-        "noFreeVars=null%n" +
-        "vars=[]%n" +
-        "vals=[]%n" +
-        "phases=[]%n" +
-        "decisions=LNGDoublePriorityQueue{}%n" +
-        "control=[CLFrame{decision=0, level=0, trail=0, mark=false}]%n" +
-        "watches=[]%n" +
-        "trail=[]%n" +
-        "frames=[]%n");
+            "next=0%n" +
+            "ignore=null%n" +
+            "empty=null%n" +
+            "vars=[]%n" +
+            "vals=[]%n" +
+            "phases=[]%n" +
+            "decisions=LNGDoublePriorityQueue{}%n" +
+            "control=[CLFrame{decision=0, level=0, trail=0, mark=false}]%n" +
+            "watches=[]%n" +
+            "trail=[]%n" +
+            "frames=[]%n");
     Assert.assertEquals(expected, baos.toString());
 
   }

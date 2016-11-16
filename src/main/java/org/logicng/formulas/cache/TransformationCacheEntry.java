@@ -44,6 +44,8 @@ public enum TransformationCacheEntry implements CacheEntry {
   FACTORIZED_DNF("factorized disjunctive normal form"),
   AIG("and-inverter graph"),
   UNITPROPAGATED("unit propagated form");
+  AIG("and-inverter graph"),
+  UNIT_PROPAGATION("unit propagation");
 
   private String description;
 

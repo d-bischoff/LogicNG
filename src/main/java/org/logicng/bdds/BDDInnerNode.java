@@ -26,66 +26,86 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.util;
+package org.logicng.bdds;
 
+import org.logicng.formulas.Variable;
+
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
- * Data structure for a pair.
- * @param <A> the type parameter of the first entry
- * @param <B> the type parameter of the second entry
- * @version 1.0
- * @since 1.0
+ * A node in a BDD.
+ * @version 1.2
+ * @since 1.2
  */
-public class Pair<A, B> {
+public final class BDDInnerNode implements BDDNode {
 
-  protected final A a;
-  protected final B b;
+  private final Variable var;
+  private final BDDNode low;
+  private final BDDNode high;
 
   /**
-   * Constructs a new pair.
-   * @param a the first entry
-   * @param b the second entry
+   * Constructor for a new inner BDD node holding a variable.
+   * @param var  the variable
+   * @param low  the low child node
+   * @param high the high child node
    */
-  public Pair(final A a, final B b) {
-    this.a = a;
-    this.b = b;
+  public BDDInnerNode(final Variable var, final BDDNode low, final BDDNode high) {
+    this.var = var;
+    this.low = low;
+    this.high = high;
   }
 
-  /**
-   * Returns the first entry of this pair.
-   * @return the first entry
-   */
-  public A first() {
-    return a;
+  @Override
+  public Variable label() {
+    return this.var;
   }
 
-  /**
-   * Returns the second entry of this pair.
-   * @return the second entry
-   */
-  public B second() {
-    return b;
+  @Override
+  public boolean isInnerNode() {
+    return true;
+  }
+
+  @Override
+  public BDDNode low() {
+    return this.low;
+  }
+
+  @Override
+  public BDDNode high() {
+    return this.high;
+  }
+
+  @Override
+  public Set<BDDNode> nodes() {
+    final Set<BDDNode> res = new HashSet<BDDNode>(Collections.singleton(this));
+    res.addAll(this.low.nodes());
+    res.addAll(this.high.nodes());
+    return res;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(a, b);
+    return Objects.hash(this.var, this.low, this.high);
   }
 
   @Override
   public boolean equals(final Object other) {
     if (this == other)
       return true;
-    if (other instanceof Pair) {
-      Pair o = (Pair) other;
-      return Objects.equals(b, o.b) && Objects.equals(a, o.a);
+    if (other instanceof BDDInnerNode) {
+      final BDDInnerNode o = (BDDInnerNode) other;
+      return Objects.equals(this.var, o.var)
+              && Objects.equals(this.low, o.low)
+              && Objects.equals(this.high, o.high);
     }
     return false;
   }
 
   @Override
   public String toString() {
-    return String.format("<%s, %s>", a, b);
+    return "<" + this.var + " | low=" + this.low + " high=" + this.high + ">";
   }
 }

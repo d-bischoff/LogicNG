@@ -26,66 +26,90 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.util;
+package org.logicng.bdds;
 
+import org.logicng.formulas.Constant;
+import org.logicng.formulas.Formula;
+import org.logicng.formulas.FormulaFactory;
+
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
- * Data structure for a pair.
- * @param <A> the type parameter of the first entry
- * @param <B> the type parameter of the second entry
- * @version 1.0
- * @since 1.0
+ * A terminal in a BDD.
+ * @version 1.2
+ * @since 1.2
  */
-public class Pair<A, B> {
+public final class BDDTerminalNode implements BDDNode {
 
-  protected final A a;
-  protected final B b;
+  private final Constant value;
 
   /**
-   * Constructs a new pair.
-   * @param a the first entry
-   * @param b the second entry
+   * Private constructor.
+   * @param value the constant value
    */
-  public Pair(final A a, final B b) {
-    this.a = a;
-    this.b = b;
+  private BDDTerminalNode(final Constant value) {
+    this.value = value;
   }
 
   /**
-   * Returns the first entry of this pair.
-   * @return the first entry
+   * Returns the terminal 0 node.
+   * @param f the formula factory
+   * @return the terminal 0 node
    */
-  public A first() {
-    return a;
+  public static BDDTerminalNode getFalsumNode(final FormulaFactory f) {
+    return new BDDTerminalNode(f.falsum());
   }
 
   /**
-   * Returns the second entry of this pair.
-   * @return the second entry
+   * Returns the terminal 1 node.
+   * @param f the formula factory
+   * @return the terminal 1 node
    */
-  public B second() {
-    return b;
+  public static BDDTerminalNode getVerumNode(final FormulaFactory f) {
+    return new BDDTerminalNode(f.verum());
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(a, b);
+  public Formula label() {
+    return value;
   }
 
   @Override
-  public boolean equals(final Object other) {
-    if (this == other)
-      return true;
-    if (other instanceof Pair) {
-      Pair o = (Pair) other;
-      return Objects.equals(b, o.b) && Objects.equals(a, o.a);
-    }
+  public boolean isInnerNode() {
     return false;
   }
 
   @Override
+  public BDDNode low() {
+    return null;
+  }
+
+  @Override
+  public BDDNode high() {
+    return null;
+  }
+
+  @Override
+  public Set<BDDNode> nodes() {
+    return new HashSet<BDDNode>(Collections.singletonList(this));
+  }
+
+  @Override
+  public int hashCode() {
+    return this.value.hashCode();
+  }
+
+  @Override
+  public boolean equals(final Object other) {
+    return this == other || other instanceof BDDTerminalNode
+            && Objects.equals(this.value, ((BDDTerminalNode) other).value);
+  }
+
+  @Override
   public String toString() {
-    return String.format("<%s, %s>", a, b);
+    return "<" + value + ">";
   }
 }

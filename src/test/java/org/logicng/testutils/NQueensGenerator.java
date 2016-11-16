@@ -26,66 +26,78 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.util;
+package org.logicng.testutils;
 
-import java.util.Objects;
+import org.logicng.cardinalityconstraints.CCConfig;
+import org.logicng.formulas.Formula;
+import org.logicng.formulas.FormulaFactory;
+import org.logicng.formulas.Variable;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Data structure for a pair.
- * @param <A> the type parameter of the first entry
- * @param <B> the type parameter of the second entry
- * @version 1.0
- * @since 1.0
+ * A generator for the n-queens problem.
+ * @version 1.2
+ * @since 1.2
  */
-public class Pair<A, B> {
+public class NQueensGenerator {
 
-  protected final A a;
-  protected final B b;
+  private final FormulaFactory f;
 
-  /**
-   * Constructs a new pair.
-   * @param a the first entry
-   * @param b the second entry
-   */
-  public Pair(final A a, final B b) {
-    this.a = a;
-    this.b = b;
+  public NQueensGenerator(final FormulaFactory f) {
+    this.f = f;
+    this.f.putConfiguration(new CCConfig.Builder().amoEncoding(CCConfig.AMO_ENCODER.PURE).build());
   }
 
-  /**
-   * Returns the first entry of this pair.
-   * @return the first entry
-   */
-  public A first() {
-    return a;
-  }
-
-  /**
-   * Returns the second entry of this pair.
-   * @return the second entry
-   */
-  public B second() {
-    return b;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(a, b);
-  }
-
-  @Override
-  public boolean equals(final Object other) {
-    if (this == other)
-      return true;
-    if (other instanceof Pair) {
-      Pair o = (Pair) other;
-      return Objects.equals(b, o.b) && Objects.equals(a, o.a);
+  public Formula generate(int n) {
+    int kk = 1;
+    Variable[][] varNames = new Variable[n][];
+    for (int i = 0; i < n; i++) {
+      varNames[i] = new Variable[n];
+      for (int j = 0; j < n; j++)
+        varNames[i][j] = f.variable("v" + kk++);
     }
-    return false;
-  }
 
-  @Override
-  public String toString() {
-    return String.format("<%s, %s>", a, b);
+    List<Formula> operands = new ArrayList<>();
+    List<Variable> vars = new ArrayList<>();
+
+    for (int i = 0; i < n; i++) {
+      vars.addAll(Arrays.asList(varNames[i]).subList(0, n));
+      operands.add(f.exo(vars).cnf());
+      vars.clear();
+    }
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++)
+        vars.add(varNames[j][i]);
+      operands.add(f.exo(vars).cnf());
+      vars.clear();
+    }
+    for (int i = 0; i < n - 1; i++) {
+      for (int j = 0; j < n - i; j++)
+        vars.add(varNames[j][i + j]);
+      operands.add(f.amo(vars).cnf());
+      vars.clear();
+    }
+    for (int i = 1; i < n - 1; i++) {
+      for (int j = 0; j < n - i; j++)
+        vars.add(varNames[j + i][j]);
+      operands.add(f.amo(vars).cnf());
+      vars.clear();
+    }
+    for (int i = 0; i < n - 1; i++) {
+      for (int j = 0; j < n - i; j++)
+        vars.add(varNames[j][n - 1 - (i + j)]);
+      operands.add(f.amo(vars).cnf());
+      vars.clear();
+    }
+    for (int i = 1; i < n - 1; i++) {
+      for (int j = 0; j < n - i; j++)
+        vars.add(varNames[j + i][n - 1 - j]);
+      operands.add(f.amo(vars).cnf());
+      vars.clear();
+    }
+    return f.and(operands);
   }
 }

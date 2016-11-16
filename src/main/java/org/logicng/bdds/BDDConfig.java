@@ -26,67 +26,87 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.explanations.unsatcores;
+package org.logicng.bdds;
 
 import org.logicng.configurations.Configuration;
 import org.logicng.configurations.ConfigurationType;
 
 /**
- * The configuration object for the MUS generation.
- * @version 1.1
- * @since 1.1
+ * The BDD object for BDD configurations.
+ * @version 1.2
+ * @since 1.2
  */
-public final class MUSConfig extends Configuration {
+public final class BDDConfig extends Configuration {
 
   /**
-   * The algorithm for the MUS generation.
+   * The different factories for BDDs.
+   * {@code CLASSICAL} - a classical BDD factory
+   * {@code COMPLEMENTARY} - a BDD factory with complementary edges
+   * {@code BUDDY} - the Buddy BDD factory
    */
-  public enum Algorithm {
-    DELETION, PLAIN_INSERTION
+  public enum FactoryType {
+    CLASSICAL, COMPLEMENTARY, BUDDY
   }
 
-  final Algorithm algorithm;
-
   /**
-   * Constructs a new configuration with a given type.
-   * @param builder the builder
+   * The different variable orders for a BDD.
+   * {@code FCFS} - first come first serve - the order in which the variables appear in the formula
+   * {@code INORDER} - ordered by number of appearances (from large to small)
+   * {@code REVERSE} - ordered by number of appearances (from small to large)
+   * {@code DWAM} - dynamic weight assignment method
+   * {@code MANUAL} - a manual user-provided ordering
    */
-  public MUSConfig(final Builder builder) {
-    super(ConfigurationType.MUS);
-    this.algorithm = builder.algorithm;
+  public enum VariableOrder {
+    FCFS, INORDER, REVERSE, DWAM, MANUAL
   }
 
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("MUSConfig{\n");
-    sb.append("algorithm=").append(this.algorithm).append("\n");
-    sb.append("}\n");
-    return sb.toString();
-  }
+  final FactoryType factoryType;
+  final VariableOrder variableOrder;
 
   /**
-   * The builder for a MUS configuration.
+   * The builder for a BDD configuration.
    */
   public static class Builder {
-
-    private Algorithm algorithm = Algorithm.DELETION;
+    private FactoryType factoryType = FactoryType.BUDDY;
+    private VariableOrder variableOrder = VariableOrder.FCFS;
 
     /**
-     * Sets the algorithm for the MUS generation. The default value is {@code DELETION}.
-     * @param algorithm the algorithm for the MUS generation
+     * Sets the factory type.  The default value is {@code BUDDY}.
+     * @param factoryType the factory type
      * @return the builder
      */
-    public Builder algorithm(final Algorithm algorithm) {
-      this.algorithm = algorithm;
+    public Builder factoryType(final FactoryType factoryType) {
+      this.factoryType = factoryType;
       return this;
     }
 
     /**
-     * Builds the configuration.
-     * @return the configuration.
+     * Sets the variable order.  The default value is {@code FCFS}.
+     * @param variableOrder the variable order
+     * @return the builder
      */
-    public MUSConfig build() {
-      return new MUSConfig(this);
+    public Builder variableOrder(final VariableOrder variableOrder) {
+      this.variableOrder = variableOrder;
+      return this;
+    }
+
+    /**
+     * Builds the BDD configuration.
+     * @return the configuration
+     */
+    public BDDConfig build() {
+      return new BDDConfig(this);
     }
   }
+
+  /**
+   * Constructs a new BDD configuration.
+   * @param builder the builder
+   */
+  private BDDConfig(final Builder builder) {
+    super(ConfigurationType.BDD);
+    this.factoryType = builder.factoryType;
+    this.variableOrder = builder.variableOrder;
+  }
+
 }

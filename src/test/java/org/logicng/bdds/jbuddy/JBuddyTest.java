@@ -26,66 +26,34 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.util;
+package org.logicng.bdds.jbuddy;
 
-import java.util.Objects;
+import org.junit.Assert;
+import org.junit.Test;
+import org.logicng.bdds.BDD;
+import org.logicng.formulas.Formula;
+import org.logicng.formulas.FormulaFactory;
+import org.logicng.predicates.CNFPredicate;
+import org.logicng.predicates.satisfiability.TautologyPredicate;
+
+import java.util.Arrays;
 
 /**
- * Data structure for a pair.
- * @param <A> the type parameter of the first entry
- * @param <B> the type parameter of the second entry
- * @version 1.0
- * @since 1.0
+ * Unit tests for {@link JBuddyFactory}.
+ * @version 1.2
+ * @since 1.2
  */
-public class Pair<A, B> {
+public class JBuddyTest {
 
-  protected final A a;
-  protected final B b;
-
-  /**
-   * Constructs a new pair.
-   * @param a the first entry
-   * @param b the second entry
-   */
-  public Pair(final A a, final B b) {
-    this.a = a;
-    this.b = b;
-  }
-
-  /**
-   * Returns the first entry of this pair.
-   * @return the first entry
-   */
-  public A first() {
-    return a;
-  }
-
-  /**
-   * Returns the second entry of this pair.
-   * @return the second entry
-   */
-  public B second() {
-    return b;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(a, b);
-  }
-
-  @Override
-  public boolean equals(final Object other) {
-    if (this == other)
-      return true;
-    if (other instanceof Pair) {
-      Pair o = (Pair) other;
-      return Objects.equals(b, o.b) && Objects.equals(a, o.a);
-    }
-    return false;
-  }
-
-  @Override
-  public String toString() {
-    return String.format("<%s, %s>", a, b);
+  @Test
+  public void test() {
+    final FormulaFactory f = new FormulaFactory();
+    JBuddyFactory factory = new JBuddyFactory(1000, 1000, f);
+    factory.setVariableOrder(Arrays.asList(f.variable("x"), f.variable("y"), f.variable("a"), f.variable("b")));
+    final Formula formula = f.or(f.and(f.literal("a", false), f.variable("b")), f.and(f.variable("x"), f.variable("y")));
+    final BDD bdd = factory.build(formula);
+    final Formula cnf = bdd.cnf();
+    Assert.assertTrue(cnf.holds(new CNFPredicate()));
+    Assert.assertTrue(f.equivalence(formula, cnf).holds(new TautologyPredicate(f)));
   }
 }

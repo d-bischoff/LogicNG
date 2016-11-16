@@ -26,66 +26,67 @@
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-package org.logicng.util;
+/*========================================================================
+           Copyright (C) 1996-2002 by Jorn Lind-Nielsen
+                        All rights reserved
 
-import java.util.Objects;
+Permission is hereby granted, without written agreement and without
+license or royalty fees, to use, reproduce, prepare derivative
+works, distribute, and display this software and its documentation
+for any purpose, provided that (1) the above copyright notice and
+the following two paragraphs appear in all copies of the source code
+and (2) redistributions, including without limitation binaries,
+reproduce these notices in the supporting documentation. Substantial
+modifications to this software may be copyrighted by their authors
+and need not follow the licensing terms described here, provided
+that the new terms are clearly indicated in all files where they apply.
+
+IN NO EVENT SHALL JORN LIND-NIELSEN, OR DISTRIBUTORS OF THIS
+SOFTWARE BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OF THIS
+SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE AUTHORS OR ANY OF THE
+ABOVE PARTIES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+JORN LIND-NIELSEN SPECIFICALLY DISCLAIM ANY WARRANTIES, INCLUDING,
+BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
+ON AN "AS IS" BASIS, AND THE AUTHORS AND DISTRIBUTORS HAVE NO
+OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
+MODIFICATIONS.
+========================================================================*/
+
+package org.logicng.bdds.jbuddy;
+
+import java.math.BigDecimal;
 
 /**
- * Data structure for a pair.
- * @param <A> the type parameter of the first entry
- * @param <B> the type parameter of the second entry
- * @version 1.0
- * @since 1.0
+ * An entry in the BDD cache.
+ * @version 1.2
+ * @since 1.2
  */
-public class Pair<A, B> {
-
-  protected final A a;
-  protected final B b;
-
-  /**
-   * Constructs a new pair.
-   * @param a the first entry
-   * @param b the second entry
-   */
-  public Pair(final A a, final B b) {
-    this.a = a;
-    this.b = b;
-  }
+final class BDDCacheEntry {
+  int a;
+  int b;
+  int c;
+  BigDecimal bdres;
+  int res;
 
   /**
-   * Returns the first entry of this pair.
-   * @return the first entry
+   * Constructs a new BDD cache entry.
    */
-  public A first() {
-    return a;
+  BDDCacheEntry() {
+    this.reset();
   }
 
   /**
-   * Returns the second entry of this pair.
-   * @return the second entry
+   * Resets this BDD cache entry.
    */
-  public B second() {
-    return b;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(a, b);
-  }
-
-  @Override
-  public boolean equals(final Object other) {
-    if (this == other)
-      return true;
-    if (other instanceof Pair) {
-      Pair o = (Pair) other;
-      return Objects.equals(b, o.b) && Objects.equals(a, o.a);
-    }
-    return false;
+  void reset() {
+    this.a = -1;
   }
 
   @Override
   public String toString() {
-    return String.format("<%s, %s>", a, b);
+    return String.format("[a=%d b=%d c=%d res=%d bdres=%s]", this.a, this.b, this.c, this.res, this.bdres);
   }
 }
