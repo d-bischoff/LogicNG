@@ -123,18 +123,6 @@ public final class LNGDoubleVector {
   }
 
   /**
-   * Ensures that this vector has the given size.  If not - the size is doubled and the old elements are copied.
-   * @param newSize the size to ensure
-   */
-  private void ensure(final int newSize) {
-    if (newSize >= this.elements.length) {
-      final double[] newArray = new double[Math.max(newSize, this.size * 2)];
-      System.arraycopy(this.elements, 0, newArray, 0, this.size);
-      this.elements = newArray;
-    }
-  }
-
-  /**
    * Pushes an element and assumes that there is enough space on the vector.
    * @param element the element to push
    * @throws ArrayIndexOutOfBoundsException if there was not enough space on the vector
@@ -236,6 +224,18 @@ public final class LNGDoubleVector {
    */
   public double[] toArray() {
     return Arrays.copyOf(this.elements, this.size);
+  }
+
+  /**
+   * Ensures that this vector has the given size.  If not - the size is doubled and the old elements are copied.
+   * @param newSize the size to ensure
+   */
+  private void ensure(final int newSize) {
+    if (newSize >= this.elements.length) {
+      final double[] newArray = new double[Math.max(newSize, this.size * 2)];
+      System.arraycopy(this.elements, 0, newArray, 0, this.size);
+      this.elements = newArray;
+    }
   }
 
   @Override

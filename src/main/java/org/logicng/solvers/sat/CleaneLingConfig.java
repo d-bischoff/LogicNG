@@ -38,6 +38,17 @@ import org.logicng.configurations.ConfigurationType;
  */
 public final class CleaneLingConfig extends Configuration {
 
+  /**
+   * The different methods for clause bumping.
+   * {@code NONE} - no bumping
+   * {@code INC} - number of times a clauses was involved in conflict analysis
+   * {@code LRU} - least recently used conflict clauses are kicked out
+   * {@code AVG} - running average of most recently used
+   */
+  public enum ClauseBumping {
+    NONE, INC, LRU, AVG
+  }
+
   final boolean block;
   final int blkwait;
   final int blkrtc;
@@ -70,6 +81,7 @@ public final class CleaneLingConfig extends Configuration {
   final boolean searchfirst;
   final int scincfact;
   final int stepslim;
+
   /**
    * Constructs a new CleaneLing configuration from a given builder.
    * @param builder the builder
@@ -155,17 +167,6 @@ public final class CleaneLingConfig extends Configuration {
     sb.append("stepsLim=").append(this.stepslim).append("\n");
     sb.append("}\n");
     return sb.toString();
-  }
-
-  /**
-   * The different methods for clause bumping.
-   * {@code NONE} - no bumping
-   * {@code INC} - number of times a clauses was involved in conflict analysis
-   * {@code LRU} - least recently used conflict clauses are kicked out
-   * {@code AVG} - running average of most recently used
-   */
-  public enum ClauseBumping {
-    NONE, INC, LRU, AVG
   }
 
   /**

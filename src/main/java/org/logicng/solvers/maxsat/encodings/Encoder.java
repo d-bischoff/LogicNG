@@ -52,7 +52,10 @@ package org.logicng.solvers.maxsat.encodings;
 import org.logicng.collections.LNGIntVector;
 import org.logicng.solvers.sat.MiniSatStyleSolver;
 
-import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.*;
+import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.AMOEncoding;
+import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.CardinalityEncoding;
+import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.IncrementalStrategy;
+import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.PBEncoding;
 
 /**
  * Encoders for cardinality constraints, pseudo Booleans and AMO constraints.

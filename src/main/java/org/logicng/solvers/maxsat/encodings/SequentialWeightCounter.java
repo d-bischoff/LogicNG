@@ -54,7 +54,9 @@ import org.logicng.collections.LNGVector;
 import org.logicng.solvers.sat.MiniSatStyleSolver;
 
 import static org.logicng.solvers.maxsat.algorithms.MaxSAT.newSATVariable;
-import static org.logicng.solvers.sat.MiniSatStyleSolver.*;
+import static org.logicng.solvers.sat.MiniSatStyleSolver.LIT_UNDEF;
+import static org.logicng.solvers.sat.MiniSatStyleSolver.mkLit;
+import static org.logicng.solvers.sat.MiniSatStyleSolver.not;
 
 /**
  * A sequential weight counter for the encoding of pseudo-Boolean constraints in CNF.

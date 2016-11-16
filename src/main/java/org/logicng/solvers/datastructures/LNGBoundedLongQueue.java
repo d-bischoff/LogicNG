@@ -113,18 +113,6 @@ public final class LNGBoundedLongQueue {
   }
 
   /**
-   * Grows this queue to a given size.
-   * @param size the size
-   */
-  private void growTo(int size) {
-    this.elems.growTo(size, 0);
-    this.first = 0;
-    this.maxSize = size;
-    this.queueSize = 0;
-    this.last = 0;
-  }
-
-  /**
    * Pushes a new element to the queue.
    * @param x the new element
    */
@@ -158,6 +146,18 @@ public final class LNGBoundedLongQueue {
    */
   public boolean valid() {
     return this.queueSize == this.maxSize;
+  }
+
+  /**
+   * Grows this queue to a given size.
+   * @param size the size
+   */
+  private void growTo(int size) {
+    this.elems.growTo(size, 0);
+    this.first = 0;
+    this.maxSize = size;
+    this.queueSize = 0;
+    this.last = 0;
   }
 
   /**

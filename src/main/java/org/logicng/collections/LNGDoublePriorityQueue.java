@@ -73,6 +73,34 @@ public final class LNGDoublePriorityQueue {
   }
 
   /**
+   * Returns the left position on the heap for a given position.
+   * @param position the position
+   * @return the left position
+   */
+  private static int left(int position) {
+    return 2 * position + 1;
+  }
+
+  /**
+   * Returns the right position on the heap for a given position.
+   * @param position the position
+   * @return the right position
+   */
+  private static int right(int position) {
+    return 2 * position + 2;
+  }
+
+  /**
+   * Returns the parent position on the heap for a given position.
+   * @param position the position
+   * @return the parent position
+   */
+  private static int parent(int position) {
+    assert position > 0;
+    return (position - 1) / 2;
+  }
+
+  /**
    * Returns whether the queue is empty or not.
    * @return {@code true} if the queue is empty, {@code false} otherwise
    */
@@ -89,6 +117,15 @@ public final class LNGDoublePriorityQueue {
   }
 
   /**
+   * Returns whether a given element is already imported and present in the queue or not.
+   * @param element the element
+   * @return {@code true} if the element is already imported and present in the queue, {@code false otherwise}.
+   */
+  public boolean contains(int element) {
+    return element >= 0 && this.imported(element) && this.pos.get(Math.abs(element)) >= 0;
+  }
+
+  /**
    * Returns the priority for a given element.
    * @param element the element
    * @return the priority of the element
@@ -99,13 +136,11 @@ public final class LNGDoublePriorityQueue {
   }
 
   /**
-   * Returns whether a given element is already imported.
-   * @param element the element
-   * @return {@code true} if the element is imported, {@code false} otherwise
+   * Returns the top element of the priority queue (= the element with the largest priority).
+   * @return the top element of the priority queue
    */
-  private boolean imported(int element) {
-    assert 0 <= element;
-    return element < this.pos.size();
+  public int top() {
+    return this.heap.get(0);
   }
 
   /**
@@ -125,23 +160,69 @@ public final class LNGDoublePriorityQueue {
   }
 
   /**
-   * Returns whether a given element is already imported and present in the queue or not.
-   * @param element the element
-   * @return {@code true} if the element is already imported and present in the queue, {@code false otherwise}.
+   * Updated the priority of a given element.
+   * @param element  the element
+   * @param priority the new priority
    */
-  public boolean contains(int element) {
-    return element >= 0 && this.imported(element) && this.pos.get(Math.abs(element)) >= 0;
+  public void update(int element, double priority) {
+    this.doImport(element);
+    final double q = this.prior.get(element);
+    if (Double.compare(q, priority) == 0)
+      return;
+    this.prior.set(element, priority);
+    if (this.pos.get(element) < 0)
+      return;
+    if (priority < q)
+      this.down(element);
+    if (q < priority)
+      this.up(element);
   }
 
   /**
-   * Imports a given element.
+   * Removes a given element from the priority queue.  Its priority is kept as is.
    * @param element the element
    */
-  private void doImport(int element) {
-    while (!this.imported(element)) {
-      this.pos.push(-1);
-      this.prior.push(0);
-    }
+  public void pop(int element) {
+    assert this.contains(element);
+    int i = this.pos.get(element);
+    this.pos.set(element, -1);
+    int last = this.heap.back();
+    this.heap.pop();
+    int j = this.heap.size();
+    if (i == j)
+      return;
+    assert i < j;
+    this.pos.set(last, i);
+    this.heap.set(i, last);
+    this.up(last);
+    this.down(last);
+  }
+
+  /**
+   * Removes the top element from the priority queue.
+   */
+  public void pop() {
+    this.pop(this.top());
+  }
+
+  /**
+   * Rescores all priorities by multiplying them with the same factor.
+   * @param factor the factor to multiply with
+   */
+  public void rescore(double factor) {
+    for (int i = 0; i < this.prior.size(); i++)
+      this.prior.set(i, this.prior.get(i) * factor);
+  }
+
+  /**
+   * Compares two elements by their priority and returns whether the first element's priority is less then the second
+   * element's priority.
+   * @param e1 the first element
+   * @param e2 the second element
+   * @return {@code true} if the priority of the first element is less than the priority of the second element
+   */
+  private boolean less(int e1, int e2) {
+    return this.prior.get(e1) < this.prior.get(e2);
   }
 
   /**
@@ -161,46 +242,6 @@ public final class LNGDoublePriorityQueue {
       epos = ppos;
     }
     this.pos.set(element, epos);
-  }
-
-  /**
-   * Returns the parent position on the heap for a given position.
-   * @param position the position
-   * @return the parent position
-   */
-  private static int parent(int position) {
-    assert position > 0;
-    return (position - 1) / 2;
-  }
-
-  /**
-   * Compares two elements by their priority and returns whether the first element's priority is less then the second
-   * element's priority.
-   * @param e1 the first element
-   * @param e2 the second element
-   * @return {@code true} if the priority of the first element is less than the priority of the second element
-   */
-  private boolean less(int e1, int e2) {
-    return this.prior.get(e1) < this.prior.get(e2);
-  }
-
-  /**
-   * Updated the priority of a given element.
-   * @param element  the element
-   * @param priority the new priority
-   */
-  public void update(int element, double priority) {
-    this.doImport(element);
-    final double q = this.prior.get(element);
-    if (Double.compare(q, priority) == 0)
-      return;
-    this.prior.set(element, priority);
-    if (this.pos.get(element) < 0)
-      return;
-    if (priority < q)
-      this.down(element);
-    if (q < priority)
-      this.up(element);
   }
 
   /**
@@ -242,68 +283,24 @@ public final class LNGDoublePriorityQueue {
   }
 
   /**
-   * Returns the left position on the heap for a given position.
-   * @param position the position
-   * @return the left position
+   * Returns whether a given element is already imported.
+   * @param element the element
+   * @return {@code true} if the element is imported, {@code false} otherwise
    */
-  private static int left(int position) {
-    return 2 * position + 1;
+  private boolean imported(int element) {
+    assert 0 <= element;
+    return element < this.pos.size();
   }
 
   /**
-   * Returns the right position on the heap for a given position.
-   * @param position the position
-   * @return the right position
-   */
-  private static int right(int position) {
-    return 2 * position + 2;
-  }
-
-  /**
-   * Removes the top element from the priority queue.
-   */
-  public void pop() {
-    this.pop(this.top());
-  }
-
-  /**
-   * Removes a given element from the priority queue.  Its priority is kept as is.
+   * Imports a given element.
    * @param element the element
    */
-  public void pop(int element) {
-    assert this.contains(element);
-    int i = this.pos.get(element);
-    this.pos.set(element, -1);
-    int last = this.heap.back();
-    this.heap.pop();
-    int j = this.heap.size();
-    if (i == j)
-      return;
-    assert i < j;
-    this.pos.set(last, i);
-    this.heap.set(i, last);
-    this.up(last);
-    this.down(last);
-  }
-
-  /**
-   * Returns the top element of the priority queue (= the element with the largest priority).
-   *
-   * @return the top element of the priority queue
-   */
-  public int top() {
-    return this.heap.get(0);
-  }
-
-  /**
-   * Rescores all priorities by multiplying them with the same factor.
-   *
-   * @param factor
-   *     the factor to multiply with
-   */
-  public void rescore(double factor) {
-    for (int i = 0; i < this.prior.size(); i++)
-      this.prior.set(i, this.prior.get(i) * factor);
+  private void doImport(int element) {
+    while (!this.imported(element)) {
+      this.pos.push(-1);
+      this.prior.push(0);
+    }
   }
 
   @Override

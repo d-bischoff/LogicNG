@@ -468,33 +468,6 @@ public class MiniSat2Solver extends MiniSatStyleSolver {
   }
 
   /**
-   * Performs an unconditional backtrack to level zero.
-   */
-  private void completeBacktrack() {
-    for (int v = 0; v < vars.size(); v++) {
-      MSVariable var = vars.get(v);
-      var.assign(Tristate.UNDEF);
-      var.setReason(null);
-      if (!orderHeap.inHeap(v) && var.decision())
-        orderHeap.insert(v);
-    }
-    trail.clear();
-    trailLim.clear();
-    qhead = 0;
-  }
-
-  /**
-   * Performs a simple removal of clauses used during the loading of an older state.
-   *
-   * @param c
-   *     the clause to remove
-   */
-  private void simpleRemoveClause(final MSClause c) {
-    watches.get(not(c.get(0))).remove(new MSWatcher(c, c.get(1)));
-    watches.get(not(c.get(1))).remove(new MSWatcher(c, c.get(0)));
-  }
-
-  /**
    * The main search procedure of the CDCL algorithm.
    * @param nofConflicts the number of conflicts till the next restart
    * @return a {@link Tristate} representing the result.  {@code FALSE} if the formula is UNSAT, {@code TRUE} if the
@@ -652,5 +625,30 @@ public class MiniSat2Solver extends MiniSatStyleSolver {
     }
     for (int l = 0; l < analyzeToClear.size(); l++)
       seen.set(var(analyzeToClear.get(l)), false);
+  }
+
+  /**
+   * Performs an unconditional backtrack to level zero.
+   */
+  private void completeBacktrack() {
+    for (int v = 0; v < vars.size(); v++) {
+      MSVariable var = vars.get(v);
+      var.assign(Tristate.UNDEF);
+      var.setReason(null);
+      if (!orderHeap.inHeap(v) && var.decision())
+        orderHeap.insert(v);
+    }
+    trail.clear();
+    trailLim.clear();
+    qhead = 0;
+  }
+
+  /**
+   * Performs a simple removal of clauses used during the loading of an older state.
+   * @param c the clause to remove
+   */
+  private void simpleRemoveClause(final MSClause c) {
+    watches.get(not(c.get(0))).remove(new MSWatcher(c, c.get(1)));
+    watches.get(not(c.get(1))).remove(new MSWatcher(c, c.get(0)));
   }
 }

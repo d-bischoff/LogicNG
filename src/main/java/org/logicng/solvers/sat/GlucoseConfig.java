@@ -122,7 +122,7 @@ public final class GlucoseConfig extends Configuration {
     }
 
     /**
-     * Sets the value to protect clauses if their LBD accelerate and is lower than it (for one turn).  The default value
+     * Sets the value to protect clauses if their LBD decrease and is lower than it (for one turn).  The default value
      * is 30.
      * @param lbLBDFrozenClause the value
      * @return the builder

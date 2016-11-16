@@ -70,6 +70,33 @@ public final class LNGHeap {
   }
 
   /**
+   * Returns the left position on the heap for a given position.
+   * @param pos the position
+   * @return the left position
+   */
+  private static int left(int pos) {
+    return pos * 2 + 1;
+  }
+
+  /**
+   * Returns the right position on the heap for a given position.
+   * @param pos the position
+   * @return the right position
+   */
+  private static int right(int pos) {
+    return (pos + 1) * 2;
+  }
+
+  /**
+   * Returns the parent position on the heap for a given position.
+   * @param pos the position
+   * @return the parent position
+   */
+  private static int parent(int pos) {
+    return (pos - 1) >> 1;
+  }
+
+  /**
    * Returns the size of the heap.
    * @return the size of the heap
    */
@@ -83,6 +110,15 @@ public final class LNGHeap {
    */
   public boolean empty() {
     return this.heap.size() == 0;
+  }
+
+  /**
+   * Returns {@code true} if a given element is in the heap, {@code false} otherwise.
+   * @param n the element
+   * @return {@code true} if a given variable index is in the heap
+   */
+  public boolean inHeap(int n) {
+    return n < this.indices.size() && this.indices.get(n) >= 0;
   }
 
   /**
@@ -102,42 +138,6 @@ public final class LNGHeap {
   public void decrease(int n) {
     assert this.inHeap(n);
     this.percolateUp(this.indices.get(n));
-  }
-
-  /**
-   * Returns {@code true} if a given element is in the heap, {@code false} otherwise.
-   * @param n the element
-   * @return {@code true} if a given variable index is in the heap
-   */
-  public boolean inHeap(int n) {
-    return n < this.indices.size() && this.indices.get(n) >= 0;
-  }
-
-  /**
-   * Bubbles a element at a given position up.
-   * @param pos the position
-   */
-  private void percolateUp(int pos) {
-    int x = this.heap.get(pos);
-    int p = parent(pos);
-    int j = pos;
-    while (j != 0 && this.s.lt(x, this.heap.get(p))) {
-      this.heap.set(j, this.heap.get(p));
-      this.indices.set(this.heap.get(p), j);
-      j = p;
-      p = parent(p);
-    }
-    this.heap.set(j, x);
-    this.indices.set(x, j);
-  }
-
-  /**
-   * Returns the parent position on the heap for a given position.
-   * @param pos the position
-   * @return the parent position
-   */
-  private static int parent(int pos) {
-    return (pos - 1) >> 1;
   }
 
   /**
@@ -165,49 +165,6 @@ public final class LNGHeap {
     if (this.heap.size() > 1)
       this.percolateDown(0);
     return x;
-  }
-
-  /**
-   * Bubbles a element at a given position down.
-   * @param pos the position
-   */
-  private void percolateDown(int pos) {
-    int p = pos;
-    int y = this.heap.get(p);
-    while (left(p) < this.heap.size()) {
-      int child = right(p) < this.heap.size() && this.s.lt(this.heap.get(right(p)), this.heap.get(left(p))) ? right(p) : left(p);
-      if (!this.s.lt(this.heap.get(child), y))
-        break;
-      this.heap.set(p, this.heap.get(child));
-      this.indices.set(this.heap.get(p), p);
-      p = child;
-    }
-    this.heap.set(p, y);
-    this.indices.set(y, p);
-  }
-
-  /**
-   * Returns the left position on the heap for a given position.
-   *
-   * @param pos
-   *     the position
-   *
-   * @return the left position
-   */
-  private static int left(int pos) {
-    return pos * 2 + 1;
-  }
-
-  /**
-   * Returns the right position on the heap for a given position.
-   *
-   * @param pos
-   *     the position
-   *
-   * @return the right position
-   */
-  private static int right(int pos) {
-    return (pos + 1) * 2;
   }
 
   /**
@@ -250,6 +207,43 @@ public final class LNGHeap {
     for (int i = 0; i < this.heap.size(); i++)
       this.indices.set(this.heap.get(i), -1);
     this.heap.clear();
+  }
+
+  /**
+   * Bubbles a element at a given position up.
+   * @param pos the position
+   */
+  private void percolateUp(int pos) {
+    int x = this.heap.get(pos);
+    int p = parent(pos);
+    int j = pos;
+    while (j != 0 && this.s.lt(x, this.heap.get(p))) {
+      this.heap.set(j, this.heap.get(p));
+      this.indices.set(this.heap.get(p), j);
+      j = p;
+      p = parent(p);
+    }
+    this.heap.set(j, x);
+    this.indices.set(x, j);
+  }
+
+  /**
+   * Bubbles a element at a given position down.
+   * @param pos the position
+   */
+  private void percolateDown(int pos) {
+    int p = pos;
+    int y = this.heap.get(p);
+    while (left(p) < this.heap.size()) {
+      int child = right(p) < this.heap.size() && this.s.lt(this.heap.get(right(p)), this.heap.get(left(p))) ? right(p) : left(p);
+      if (!this.s.lt(this.heap.get(child), y))
+        break;
+      this.heap.set(p, this.heap.get(child));
+      this.indices.set(this.heap.get(p), p);
+      p = child;
+    }
+    this.heap.set(p, y);
+    this.indices.set(y, p);
   }
 
   @Override

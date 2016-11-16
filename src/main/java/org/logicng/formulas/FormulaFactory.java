@@ -39,9 +39,24 @@ import org.logicng.pseudobooleans.PBEncoder;
 import org.logicng.transformations.cnf.CNFEncoder;
 import org.logicng.util.Pair;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
-import static org.logicng.formulas.FType.*;
+import static org.logicng.formulas.FType.AND;
+import static org.logicng.formulas.FType.FALSE;
+import static org.logicng.formulas.FType.LITERAL;
+import static org.logicng.formulas.FType.NOT;
+import static org.logicng.formulas.FType.OR;
+import static org.logicng.formulas.FType.TRUE;
 
 /**
  * The formula factory for LogicNG.
@@ -95,16 +110,6 @@ public final class FormulaFactory {
   private int cnfCounter;
 
   /**
-   * Constructor for a new formula factory with a given name. This name is included in generated variables.
-   * If you intent to mix formulas from different factories, you have to choose different names for the factories
-   * to avoid name clashing of generated variables.
-   * @param name the name of the factory
-   */
-  public FormulaFactory(final String name) {
-    this(name, new DefaultStringRepresentation());
-  }
-
-  /**
    * Constructor for a new formula factory.
    * @param name                 the name of the factory
    * @param stringRepresentation the string representation of the formulas
@@ -133,6 +138,35 @@ public final class FormulaFactory {
   }
 
   /**
+   * Constructor for a new formula factory with a given name. This name is included in generated variables.
+   * If you intent to mix formulas from different factories, you have to choose different names for the factories
+   * to avoid name clashing of generated variables.
+   * @param name the name of the factory
+   */
+  public FormulaFactory(final String name) {
+    this(name, new DefaultStringRepresentation());
+  }
+
+  /**
+   * Constructor for a new formula factory with a default empty name.
+   * You should not mix formulas from formula factories without a name, since the names of generated variables will clash.
+   */
+  public FormulaFactory() {
+    this("", new DefaultStringRepresentation());
+  }
+
+  /**
+   * Returns {@code true} if a given list of formulas contains the negation of a  given formula,
+   * {@code false} otherwise.
+   * @param formulas the list of formulas
+   * @param f        the formula
+   * @return {@code true} if a given list of formulas contains a given formula, {@code false} otherwise
+   */
+  private static boolean containsComplement(final LinkedHashSet<Formula> formulas, Formula f) {
+    return formulas.contains(f.negate());
+  }
+
+  /**
    * Removes all formulas from the factory cache.
    */
   public void clear() {
@@ -154,14 +188,6 @@ public final class FormulaFactory {
     this.ccCounter = 0;
     this.pbCounter = 0;
     this.cnfCounter = 0;
-  }
-
-  /**
-   * Constructor for a new formula factory with a default empty name.
-   * You should not mix formulas from formula factories without a name, since the names of generated variables will clash.
-   */
-  public FormulaFactory() {
-    this("", new DefaultStringRepresentation());
   }
 
   /**
@@ -350,17 +376,6 @@ public final class FormulaFactory {
   }
 
   /**
-   * Creates a new disjunction from an array of formulas.
-   * @param operands the list of formulas
-   * @return a new disjunction
-   */
-  public Formula or(final Formula... operands) {
-    final LinkedHashSet<Formula> ops = new LinkedHashSet<>(operands.length);
-    Collections.addAll(ops, operands);
-    return this.constructOr(ops);
-  }
-
-  /**
    * Creates a new conjunction from an array of formulas.
    * @param operands the vector of formulas
    * @return a new conjunction
@@ -372,64 +387,15 @@ public final class FormulaFactory {
   }
 
   /**
-   * Creates a new disjunction.
-   * @param operands the formulas
-   * @return a new disjunction
+   * Creates a new conjunction from a collection of formulas.
+   * <p>
+   * Note: The LinkedHashSet is used to eliminate duplicate sub-formulas and to respect the commutativity of operands.
+   * @param operands the array of formulas
+   * @return a new conjunction
    */
-  private Formula constructOr(final LinkedHashSet<? extends Formula> operands) {
-    Or tempOr = null;
-    Map<LinkedHashSet<? extends Formula>, Or> opOrMap = this.orsN;
-    if (operands.size() > 1) {
-      switch (operands.size()) {
-        case 2:
-          opOrMap = this.ors2;
-          break;
-        case 3:
-          opOrMap = this.ors3;
-          break;
-        case 4:
-          opOrMap = this.ors4;
-          break;
-        default:
-          break;
-      }
-      tempOr = opOrMap.get(operands);
-    }
-    if (tempOr != null)
-      return tempOr;
-    LinkedHashSet<? extends Formula> condensedOperands = operands.size() < 2
-        ? operands
-        : this.condenseOperandsOr(operands);
-    if (condensedOperands == null)
-      return this.verum();
-    if (condensedOperands.isEmpty())
-      return this.falsum();
-    if (condensedOperands.size() == 1)
-      return condensedOperands.iterator().next();
-    Or or;
-    Map<LinkedHashSet<? extends Formula>, Or> condOrMap = this.orsN;
-    switch (condensedOperands.size()) {
-      case 2:
-        condOrMap = this.ors2;
-        break;
-      case 3:
-        condOrMap = this.ors3;
-        break;
-      case 4:
-        condOrMap = this.ors4;
-        break;
-      default:
-        break;
-    }
-    or = condOrMap.get(condensedOperands);
-    if (or == null) {
-      tempOr = new Or(condensedOperands, this, this.cnfCheck);
-      opOrMap.put(operands, tempOr);
-      condOrMap.put(condensedOperands, tempOr);
-      return tempOr;
-    }
-    opOrMap.put(operands, or);
-    return or;
+  public Formula and(final Collection<? extends Formula> operands) {
+    final LinkedHashSet<Formula> ops = new LinkedHashSet<>(operands);
+    return this.constructAnd(ops);
   }
 
   /**
@@ -494,145 +460,6 @@ public final class FormulaFactory {
   }
 
   /**
-   * Returns a condensed array of operands for a given n-ary disjunction.
-   * @param operands the formulas
-   * @return a condensed array of operands
-   */
-  private LinkedHashSet<Formula> condenseOperandsOr(Collection<? extends Formula> operands) {
-    final LinkedHashSet<Formula> ops = new LinkedHashSet<>();
-    this.cnfCheck = true;
-    for (Formula form : operands)
-      if (form.type() == OR) {
-        for (Formula f : ((NAryOperator) form).operands) {
-          this.addFormulaOr(ops, f);
-          if (!formulaAdditionResult[0])
-            return null;
-          if (!formulaAdditionResult[1])
-            this.cnfCheck = false;
-        }
-      } else {
-        this.addFormulaOr(ops, form);
-        if (!formulaAdditionResult[0])
-          return null;
-        if (!formulaAdditionResult[1])
-          this.cnfCheck = false;
-      }
-    return ops;
-  }
-
-  /**
-   * Returns a condensed array of operands for a given n-ary conjunction.
-   *
-   * @param operands
-   *     the formulas
-   *
-   * @return a condensed array of operands
-   */
-  private LinkedHashSet<Formula> condenseOperandsAnd(Collection<? extends Formula> operands) {
-    final LinkedHashSet<Formula> ops = new LinkedHashSet<>();
-    this.cnfCheck = true;
-    for (Formula form : operands)
-      if (form.type() == AND) {
-        for (Formula f : ((NAryOperator) form).operands) {
-          this.addFormulaAnd(ops, f);
-          if (!formulaAdditionResult[0])
-            return null;
-          if (!formulaAdditionResult[1])
-            this.cnfCheck = false;
-        }
-      } else {
-        this.addFormulaAnd(ops, form);
-        if (!formulaAdditionResult[0])
-          return null;
-        if (!formulaAdditionResult[1])
-          this.cnfCheck = false;
-      }
-    return ops;
-  }
-
-  /**
-   * Adds a given formula to a list of operands.  If the formula is the neutral element for the respective n-ary
-   * operation it will be skipped.  If a complementary formula is already present in the list of operands or the
-   * formula is the dual element, {@code false} is stored as first element of the result array,
-   * otherwise {@code true} is the first element of the result array.  If the added formula was a literal, the second
-   * element in the result array is {@code true}, {@code false} otherwise.
-   *
-   * @param ops
-   *     the list of operands
-   * @param f
-   *     the formula
-   */
-  private void addFormulaOr(final LinkedHashSet<Formula> ops, final Formula f) {
-    if (f.type == FALSE) {
-      formulaAdditionResult[0] = true;
-      formulaAdditionResult[1] = true;
-    } else if (f.type == TRUE || containsComplement(ops, f)) {
-      formulaAdditionResult[0] = false;
-      formulaAdditionResult[1] = false;
-    } else {
-      ops.add(f);
-      formulaAdditionResult[0] = true;
-      formulaAdditionResult[1] = f.type == LITERAL;
-    }
-  }
-
-  /**
-   * Adds a given formula to a list of operands.  If the formula is the neutral element for the respective n-ary
-   * operation it will be skipped.  If a complementary formula is already present in the list of operands or the
-   * formula is the dual element, {@code false} is stored as first element of the result array,
-   * otherwise {@code true} is the first element of the result array.  If the added formula was a clause, the second
-   * element in the result array is {@code true}, {@code false} otherwise.
-   *
-   * @param ops
-   *     the list of operands
-   * @param f
-   *     the formula
-   */
-  private void addFormulaAnd(final LinkedHashSet<Formula> ops, final Formula f) {
-    if (f.type() == TRUE) {
-      formulaAdditionResult[0] = true;
-      formulaAdditionResult[1] = true;
-    } else if (f.type == FALSE || containsComplement(ops, f)) {
-      formulaAdditionResult[0] = false;
-      formulaAdditionResult[1] = false;
-    } else {
-      ops.add(f);
-      formulaAdditionResult[0] = true;
-      formulaAdditionResult[1] = f.type == LITERAL || f.type == OR && ((Or) f).isCNFClause();
-    }
-  }
-
-  /**
-   * Returns {@code true} if a given list of formulas contains the negation of a  given formula,
-   * {@code false} otherwise.
-   *
-   * @param formulas
-   *     the list of formulas
-   * @param f
-   *     the formula
-   *
-   * @return {@code true} if a given list of formulas contains a given formula, {@code false} otherwise
-   */
-  private static boolean containsComplement(final LinkedHashSet<Formula> formulas, Formula f) {
-    return formulas.contains(f.negate());
-  }
-
-  /**
-   * Creates a new conjunction from a collection of formulas.
-   * <p>
-   * Note: The LinkedHashSet is used to eliminate duplicate sub-formulas and to respect the commutativity of operands.
-   *
-   * @param operands
-   *     the array of formulas
-   *
-   * @return a new conjunction
-   */
-  public Formula and(final Collection<? extends Formula> operands) {
-    final LinkedHashSet<Formula> ops = new LinkedHashSet<>(operands);
-    return this.constructAnd(ops);
-  }
-
-  /**
    * Creates a new CNF from an array of clauses.
    * <p>
    * ATTENTION: it is assumed that the operands are really clauses - this is not checked for performance reasons.
@@ -644,6 +471,20 @@ public final class FormulaFactory {
   public Formula cnf(final Formula... clauses) {
     final LinkedHashSet<Formula> ops = new LinkedHashSet<>(clauses.length);
     Collections.addAll(ops, clauses);
+    return this.constructCNF(ops);
+  }
+
+  /**
+   * Creates a new CNF from a collection of clauses.
+   * <p>
+   * ATTENTION: it is assumed that the operands are really clauses - this is not checked for performance reasons.
+   * Also no reduction of operands is performed - this method should only be used if you are sure that the CNF is free
+   * of redundant clauses.
+   * @param clauses the collection of clauses
+   * @return a new CNF
+   */
+  public Formula cnf(final Collection<? extends Formula> clauses) {
+    final LinkedHashSet<? extends Formula> ops = new LinkedHashSet<>(clauses);
     return this.constructCNF(ops);
   }
 
@@ -680,17 +521,14 @@ public final class FormulaFactory {
   }
 
   /**
-   * Creates a new CNF from a collection of clauses.
-   * <p>
-   * ATTENTION: it is assumed that the operands are really clauses - this is not checked for performance reasons.
-   * Also no reduction of operands is performed - this method should only be used if you are sure that the CNF is free
-   * of redundant clauses.
-   * @param clauses the collection of clauses
-   * @return a new CNF
+   * Creates a new disjunction from an array of formulas.
+   * @param operands the list of formulas
+   * @return a new disjunction
    */
-  public Formula cnf(final Collection<? extends Formula> clauses) {
-    final LinkedHashSet<? extends Formula> ops = new LinkedHashSet<>(clauses);
-    return this.constructCNF(ops);
+  public Formula or(final Formula... operands) {
+    final LinkedHashSet<Formula> ops = new LinkedHashSet<>(operands.length);
+    Collections.addAll(ops, operands);
+    return this.constructOr(ops);
   }
 
   /**
@@ -706,6 +544,67 @@ public final class FormulaFactory {
   }
 
   /**
+   * Creates a new disjunction.
+   * @param operands the formulas
+   * @return a new disjunction
+   */
+  private Formula constructOr(final LinkedHashSet<? extends Formula> operands) {
+    Or tempOr = null;
+    Map<LinkedHashSet<? extends Formula>, Or> opOrMap = this.orsN;
+    if (operands.size() > 1) {
+      switch (operands.size()) {
+        case 2:
+          opOrMap = this.ors2;
+          break;
+        case 3:
+          opOrMap = this.ors3;
+          break;
+        case 4:
+          opOrMap = this.ors4;
+          break;
+        default:
+          break;
+      }
+      tempOr = opOrMap.get(operands);
+    }
+    if (tempOr != null)
+      return tempOr;
+    LinkedHashSet<? extends Formula> condensedOperands = operands.size() < 2
+            ? operands
+            : this.condenseOperandsOr(operands);
+    if (condensedOperands == null)
+      return this.verum();
+    if (condensedOperands.isEmpty())
+      return this.falsum();
+    if (condensedOperands.size() == 1)
+      return condensedOperands.iterator().next();
+    Or or;
+    Map<LinkedHashSet<? extends Formula>, Or> condOrMap = this.orsN;
+    switch (condensedOperands.size()) {
+      case 2:
+        condOrMap = this.ors2;
+        break;
+      case 3:
+        condOrMap = this.ors3;
+        break;
+      case 4:
+        condOrMap = this.ors4;
+        break;
+      default:
+        break;
+    }
+    or = condOrMap.get(condensedOperands);
+    if (or == null) {
+      tempOr = new Or(condensedOperands, this, this.cnfCheck);
+      opOrMap.put(operands, tempOr);
+      condOrMap.put(condensedOperands, tempOr);
+      return tempOr;
+    }
+    opOrMap.put(operands, or);
+    return or;
+  }
+
+  /**
    * Creates a new clause from an array of literals.
    * <p>
    * ATTENTION:  No reduction of operands is performed - this method should only be used if you are sure that the clause
@@ -716,6 +615,19 @@ public final class FormulaFactory {
   public Formula clause(final Literal... literals) {
     final LinkedHashSet<Literal> ops = new LinkedHashSet<>(literals.length);
     Collections.addAll(ops, literals);
+    return this.constructClause(ops);
+  }
+
+  /**
+   * Creates a new clause from a collection of literals.
+   * <p>
+   * ATTENTION:  No reduction of operands is performed - this method should only be used if you are sure that the clause
+   * is free of contradicting literals.
+   * @param literals the collection of literals
+   * @return a new clause
+   */
+  public Formula clause(final Collection<? extends Literal> literals) {
+    final LinkedHashSet<Literal> ops = new LinkedHashSet<>(literals);
     return this.constructClause(ops);
   }
 
@@ -752,22 +664,6 @@ public final class FormulaFactory {
     tempOr = new Or(literals, this, true);
     opOrMap.put(literals, tempOr);
     return tempOr;
-  }
-
-  /**
-   * Creates a new clause from a collection of literals.
-   * <p>
-   * ATTENTION:  No reduction of operands is performed - this method should only be used if you are sure that the clause
-   * is free of contradicting literals.
-   *
-   * @param literals
-   *     the collection of literals
-   *
-   * @return a new clause
-   */
-  public Formula clause(final Collection<? extends Literal> literals) {
-    final LinkedHashSet<Literal> ops = new LinkedHashSet<>(literals);
-    return this.constructClause(ops);
   }
 
   /**
@@ -821,16 +717,6 @@ public final class FormulaFactory {
     return this.constructPBC(comparator, rhs, literals.toArray(new Literal[literals.size()]), cfs);
   }
 
-  private PBConstraint constructPBC(final CType comparator, int rhs, final Literal[] literals, final int[] coefficients) {
-    final PBOperands operands = new PBOperands(literals, coefficients, comparator, rhs);
-    PBConstraint constraint = this.pbConstraints.get(operands);
-    if (constraint == null) {
-      constraint = new PBConstraint(literals, coefficients, comparator, rhs, this);
-      this.pbConstraints.put(operands, constraint);
-    }
-    return constraint;
-  }
-
   /**
    * Creates a new pseudo-Boolean constraint.
    * @param comparator   the comparator of the constraint
@@ -844,14 +730,14 @@ public final class FormulaFactory {
     return constructPBC(comparator, rhs, Arrays.copyOf(literals, literals.length), Arrays.copyOf(coefficients, coefficients.length));
   }
 
-  /**
-   * Creates a new at-most-one cardinality constraint.
-   * @param variables the variables of the constraint
-   * @return the at-most-one constraint
-   * @throws IllegalArgumentException if there are negative variables
-   */
-  public PBConstraint amo(final Collection<Variable> variables) {
-    return this.cc(CType.LE, 1, variables);
+  private PBConstraint constructPBC(final CType comparator, int rhs, final Literal[] literals, final int[] coefficients) {
+    final PBOperands operands = new PBOperands(literals, coefficients, comparator, rhs);
+    PBConstraint constraint = this.pbConstraints.get(operands);
+    if (constraint == null) {
+      constraint = new PBConstraint(literals, coefficients, comparator, rhs, this);
+      this.pbConstraints.put(operands, constraint);
+    }
+    return constraint;
   }
 
   /**
@@ -873,16 +759,6 @@ public final class FormulaFactory {
   }
 
   /**
-   * Creates a new at-most-one cardinality constraint.
-   * @param variables the variables of the constraint
-   * @return the at-most-one constraint
-   * @throws IllegalArgumentException if there are negative variables
-   */
-  public PBConstraint amo(final Variable... variables) {
-    return this.cc(CType.LE, 1, variables);
-  }
-
-  /**
    * Creates a new cardinality constraint.
    * @param variables  the variables of the constraint
    * @param comparator the comparator of the constraint
@@ -898,6 +774,26 @@ public final class FormulaFactory {
     for (final Variable var : variables)
       vars[count++] = var;
     return this.constructPBC(comparator, rhs, vars, coefficients);
+  }
+
+  /**
+   * Creates a new at-most-one cardinality constraint.
+   * @param variables the variables of the constraint
+   * @return the at-most-one constraint
+   * @throws IllegalArgumentException if there are negative variables
+   */
+  public PBConstraint amo(final Collection<Variable> variables) {
+    return this.cc(CType.LE, 1, variables);
+  }
+
+  /**
+   * Creates a new at-most-one cardinality constraint.
+   * @param variables the variables of the constraint
+   * @return the at-most-one constraint
+   * @throws IllegalArgumentException if there are negative variables
+   */
+  public PBConstraint amo(final Variable... variables) {
+    return this.cc(CType.LE, 1, variables);
   }
 
   /**
@@ -957,6 +853,60 @@ public final class FormulaFactory {
   }
 
   /**
+   * Returns a condensed array of operands for a given n-ary disjunction.
+   * @param operands the formulas
+   * @return a condensed array of operands
+   */
+  private LinkedHashSet<Formula> condenseOperandsOr(Collection<? extends Formula> operands) {
+    final LinkedHashSet<Formula> ops = new LinkedHashSet<>();
+    this.cnfCheck = true;
+    for (Formula form : operands)
+      if (form.type() == OR) {
+        for (Formula f : ((NAryOperator) form).operands) {
+          this.addFormulaOr(ops, f);
+          if (!formulaAdditionResult[0])
+            return null;
+          if (!formulaAdditionResult[1])
+            this.cnfCheck = false;
+        }
+      } else {
+        this.addFormulaOr(ops, form);
+        if (!formulaAdditionResult[0])
+          return null;
+        if (!formulaAdditionResult[1])
+          this.cnfCheck = false;
+      }
+    return ops;
+  }
+
+  /**
+   * Returns a condensed array of operands for a given n-ary conjunction.
+   * @param operands the formulas
+   * @return a condensed array of operands
+   */
+  private LinkedHashSet<Formula> condenseOperandsAnd(Collection<? extends Formula> operands) {
+    final LinkedHashSet<Formula> ops = new LinkedHashSet<>();
+    this.cnfCheck = true;
+    for (Formula form : operands)
+      if (form.type() == AND) {
+        for (Formula f : ((NAryOperator) form).operands) {
+          this.addFormulaAnd(ops, f);
+          if (!formulaAdditionResult[0])
+            return null;
+          if (!formulaAdditionResult[1])
+            this.cnfCheck = false;
+        }
+      } else {
+        this.addFormulaAnd(ops, form);
+        if (!formulaAdditionResult[0])
+          return null;
+        if (!formulaAdditionResult[1])
+          this.cnfCheck = false;
+      }
+    return ops;
+  }
+
+  /**
    * Returns {@code true} if the given variable was generated, {@code false} otherwise.
    * @param var the variable to check
    * @return {@code true} if the given variable was generated
@@ -985,6 +935,52 @@ public final class FormulaFactory {
   }
 
   /**
+   * Adds a given formula to a list of operands.  If the formula is the neutral element for the respective n-ary
+   * operation it will be skipped.  If a complementary formula is already present in the list of operands or the
+   * formula is the dual element, {@code false} is stored as first element of the result array,
+   * otherwise {@code true} is the first element of the result array.  If the added formula was a literal, the second
+   * element in the result array is {@code true}, {@code false} otherwise.
+   * @param ops the list of operands
+   * @param f   the formula
+   */
+  private void addFormulaOr(final LinkedHashSet<Formula> ops, final Formula f) {
+    if (f.type == FALSE) {
+      formulaAdditionResult[0] = true;
+      formulaAdditionResult[1] = true;
+    } else if (f.type == TRUE || containsComplement(ops, f)) {
+      formulaAdditionResult[0] = false;
+      formulaAdditionResult[1] = false;
+    } else {
+      ops.add(f);
+      formulaAdditionResult[0] = true;
+      formulaAdditionResult[1] = f.type == LITERAL;
+    }
+  }
+
+  /**
+   * Adds a given formula to a list of operands.  If the formula is the neutral element for the respective n-ary
+   * operation it will be skipped.  If a complementary formula is already present in the list of operands or the
+   * formula is the dual element, {@code false} is stored as first element of the result array,
+   * otherwise {@code true} is the first element of the result array.  If the added formula was a clause, the second
+   * element in the result array is {@code true}, {@code false} otherwise.
+   * @param ops the list of operands
+   * @param f   the formula
+   */
+  private void addFormulaAnd(final LinkedHashSet<Formula> ops, final Formula f) {
+    if (f.type() == TRUE) {
+      formulaAdditionResult[0] = true;
+      formulaAdditionResult[1] = true;
+    } else if (f.type == FALSE || containsComplement(ops, f)) {
+      formulaAdditionResult[0] = false;
+      formulaAdditionResult[1] = false;
+    } else {
+      ops.add(f);
+      formulaAdditionResult[0] = true;
+      formulaAdditionResult[1] = f.type == LITERAL || f.type == OR && ((Or) f).isCNFClause();
+    }
+  }
+
+  /**
    * Returns a string representation of a formula with this factories string representation
    * @param formula the formula
    * @return the string representation
@@ -1001,7 +997,26 @@ public final class FormulaFactory {
    */
   public String string(final Formula formula, final FormulaStringRepresentation stringRepresentation) {
     return stringRepresentation.toString(formula);
+  }  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("Name:              ").append(this.name).append("\n");
+    sb.append("Positive Literals: ").append(this.posLiterals.size()).append("\n");
+    sb.append("Negative Literals: ").append(this.negLiterals.size()).append("\n");
+    sb.append("Negations:         ").append(this.nots.size()).append("\n");
+    sb.append("Implications:      ").append(this.implications.size()).append("\n");
+    sb.append("Equivalences:      ").append(this.equivalences.size()).append("\n");
+    sb.append("Conjunctions (2):  ").append(this.ands2.size()).append("\n");
+    sb.append("Conjunctions (3):  ").append(this.ands3.size()).append("\n");
+    sb.append("Conjunctions (4):  ").append(this.ands4.size()).append("\n");
+    sb.append("Conjunctions (>4): ").append(this.andsN.size()).append("\n");
+    sb.append("Disjunctions (2):  ").append(this.ors2.size()).append("\n");
+    sb.append("Disjunctions (3):  ").append(this.ors3.size()).append("\n");
+    sb.append("Disjunctions (4):  ").append(this.ors4.size()).append("\n");
+    sb.append("Disjunctions (>4): ").append(this.orsN.size()).append("\n");
+    return sb.toString();
   }
+
   /**
    * Helper class for the operands of a pseudo-Boolean constraint.
    */
@@ -1038,33 +1053,11 @@ public final class FormulaFactory {
         final PBOperands o = (PBOperands) other;
         return this.rhs == o.rhs && this.comparator == o.comparator
                 && Arrays.equals(this.coefficients, o.coefficients)
-            && Arrays.equals(this.literals, o.literals);
+                && Arrays.equals(this.literals, o.literals);
       }
       return false;
     }
   }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("Name:              ").append(this.name).append("\n");
-    sb.append("Positive Literals: ").append(this.posLiterals.size()).append("\n");
-    sb.append("Negative Literals: ").append(this.negLiterals.size()).append("\n");
-    sb.append("Negations:         ").append(this.nots.size()).append("\n");
-    sb.append("Implications:      ").append(this.implications.size()).append("\n");
-    sb.append("Equivalences:      ").append(this.equivalences.size()).append("\n");
-    sb.append("Conjunctions (2):  ").append(this.ands2.size()).append("\n");
-    sb.append("Conjunctions (3):  ").append(this.ands3.size()).append("\n");
-    sb.append("Conjunctions (4):  ").append(this.ands4.size()).append("\n");
-    sb.append("Conjunctions (>4): ").append(this.andsN.size()).append("\n");
-    sb.append("Disjunctions (2):  ").append(this.ors2.size()).append("\n");
-    sb.append("Disjunctions (3):  ").append(this.ors3.size()).append("\n");
-    sb.append("Disjunctions (4):  ").append(this.ors4.size()).append("\n");
-    sb.append("Disjunctions (>4): ").append(this.orsN.size()).append("\n");
-    return sb.toString();
-  }
-
-
 
 
 

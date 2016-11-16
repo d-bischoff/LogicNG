@@ -58,13 +58,24 @@ import org.logicng.handlers.MaxSATHandler;
 import org.logicng.handlers.SATHandler;
 import org.logicng.solvers.datastructures.MSHardClause;
 import org.logicng.solvers.datastructures.MSSoftClause;
-import org.logicng.solvers.sat.*;
+import org.logicng.solvers.sat.GlucoseConfig;
+import org.logicng.solvers.sat.GlucoseSyrup;
+import org.logicng.solvers.sat.MiniSat2Solver;
+import org.logicng.solvers.sat.MiniSatConfig;
+import org.logicng.solvers.sat.MiniSatStyleSolver;
 
-import java.util.*;
+import java.util.Locale;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.SolverType;
 import static org.logicng.solvers.maxsat.algorithms.MaxSATConfig.Verbosity;
-import static org.logicng.solvers.sat.MiniSatStyleSolver.*;
+import static org.logicng.solvers.sat.MiniSatStyleSolver.LIT_UNDEF;
+import static org.logicng.solvers.sat.MiniSatStyleSolver.mkLit;
+import static org.logicng.solvers.sat.MiniSatStyleSolver.sign;
+import static org.logicng.solvers.sat.MiniSatStyleSolver.var;
 
 /**
  * Super class for the MaxSAT solvers.
@@ -72,6 +83,20 @@ import static org.logicng.solvers.sat.MiniSatStyleSolver.*;
  * @since 1.0
  */
 public abstract class MaxSAT {
+
+  /**
+   * The MaxSAT problem type: {@code UNWEIGHTED} or {@code WEIGHTED}.
+   */
+  public enum ProblemType {
+    UNWEIGHTED, WEIGHTED
+  }
+
+  /**
+   * The MaxSAT result type: {@code SATISFIABLE}, {@code UNSATISFIABLE}, {@code OPTIMUM}, or {@code UNDEF}.
+   */
+  public enum MaxSATResult {
+    UNSATISFIABLE, OPTIMUM, UNDEF
+  }
 
   protected LNGVector<MSSoftClause> softClauses;
   protected LNGVector<MSHardClause> hardClauses;
@@ -92,7 +117,9 @@ public abstract class MaxSAT {
   protected Verbosity verbosity;
   protected LNGIntVector orderWeights;
   protected SolverType solverType;
+
   protected MaxSATHandler handler;
+
   protected MaxSAT(final MaxSATConfig config) {
     this.hardWeight = 0;
     this.hardClauses = new LNGVector<>();
@@ -170,11 +197,34 @@ public abstract class MaxSAT {
   public abstract MaxSATResult search();
 
   /**
+   * Returns the number of variables in the working MaxSAT formula.
+   * @return the number of variables in the working MaxSAT formula
+   */
+  public int nVars() {
+    return this.nbVars;
+  }
+
+  /**
+   * Returns the number of soft clauses in the working MaxSAT formula.
+   * @return the number of soft clauses in the working MaxSAT formula
+   */
+  public int nSoft() {
+    return this.nbSoft;
+  }
+
+  /**
    * Returns the number of hard clauses in the working MaxSAT formula.
    * @return the number of hard clauses in the working MaxSAT formula
    */
   public int nHard() {
     return this.nbHard;
+  }
+
+  /**
+   * Increases the number of variables in the working MaxSAT formula.
+   */
+  public void newVar() {
+    this.nbVars++;
   }
 
   /**
@@ -219,21 +269,6 @@ public abstract class MaxSAT {
     int p = mkLit(this.nVars(), sign);
     this.newVar();
     return p;
-  }
-
-  /**
-   * Returns the number of variables in the working MaxSAT formula.
-   * @return the number of variables in the working MaxSAT formula
-   */
-  public int nVars() {
-    return this.nbVars;
-  }
-
-  /**
-   * Increases the number of variables in the working MaxSAT formula.
-   */
-  public void newVar() {
-    this.nbVars++;
   }
 
   /**
@@ -330,14 +365,6 @@ public abstract class MaxSAT {
   }
 
   /**
-   * Returns the number of soft clauses in the working MaxSAT formula.
-   * @return the number of soft clauses in the working MaxSAT formula
-   */
-  public int nSoft() {
-    return this.nbSoft;
-  }
-
-  /**
    * Tests if the MaxSAT formula has lexicographical optimization criterion.
    * @param cache is indicates whether the result should be cached.
    * @return {@code true} if the formula has lexicographical optimization criterion
@@ -415,20 +442,6 @@ public abstract class MaxSAT {
   }
 
   /**
-   * The MaxSAT problem type: {@code UNWEIGHTED} or {@code WEIGHTED}.
-   */
-  public enum ProblemType {
-    UNWEIGHTED, WEIGHTED
-  }
-
-  /**
-   * The MaxSAT result type: {@code SATISFIABLE}, {@code UNSATISFIABLE}, {@code OPTIMUM}, or {@code UNDEF}.
-   */
-  public enum MaxSATResult {
-    UNSATISFIABLE, OPTIMUM, UNDEF
-  }
-
-  /**
    * The MaxSAT solver statistics.
    */
   public final class Stats {
@@ -489,7 +502,7 @@ public abstract class MaxSAT {
     @Override
     public String toString() {
       return String.format(Locale.ENGLISH,
-          "MaxSAT.Stats{best solution=%d, #sat calls=%d, #unsat calls=%d, average core size=%.2f, #symmetry clauses=%d}",
+              "MaxSAT.Stats{best solution=%d, #sat calls=%d, #unsat calls=%d, average core size=%.2f, #symmetry clauses=%d}",
               this.ubC, this.nbS, this.nbC, this.avgCS, this.nbSC);
     }
   }

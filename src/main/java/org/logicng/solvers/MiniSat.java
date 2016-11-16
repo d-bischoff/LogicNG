@@ -35,12 +35,30 @@ import org.logicng.collections.LNGIntVector;
 import org.logicng.datastructures.Assignment;
 import org.logicng.datastructures.EncodingResult;
 import org.logicng.datastructures.Tristate;
-import org.logicng.formulas.*;
+import org.logicng.formulas.CType;
+import org.logicng.formulas.FType;
+import org.logicng.formulas.Formula;
+import org.logicng.formulas.FormulaFactory;
+import org.logicng.formulas.Literal;
+import org.logicng.formulas.PBConstraint;
+import org.logicng.formulas.Variable;
 import org.logicng.handlers.ModelEnumerationHandler;
 import org.logicng.handlers.SATHandler;
-import org.logicng.solvers.sat.*;
+import org.logicng.solvers.sat.GlucoseConfig;
+import org.logicng.solvers.sat.GlucoseSyrup;
+import org.logicng.solvers.sat.MiniCard;
+import org.logicng.solvers.sat.MiniSat2Solver;
+import org.logicng.solvers.sat.MiniSatConfig;
+import org.logicng.solvers.sat.MiniSatStyleSolver;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static org.logicng.datastructures.Tristate.TRUE;
 import static org.logicng.datastructures.Tristate.UNDEF;
@@ -52,6 +70,8 @@ import static org.logicng.datastructures.Tristate.UNDEF;
  */
 public final class MiniSat extends SATSolver {
 
+  private enum SolverStyle {MINISAT, GLUCOSE, MINICARD}
+
   private final MiniSatStyleSolver solver;
   private final CCEncoder ccEncoder;
   private final SolverStyle style;
@@ -59,6 +79,7 @@ public final class MiniSat extends SATSolver {
   private boolean incremental;
   private boolean initialPhase;
   private int nextStateId;
+
   /**
    * Constructs a new SAT solver instance.
    * @param f           the formula factory
@@ -149,27 +170,6 @@ public final class MiniSat extends SATSolver {
     return new MiniSat(f, SolverStyle.MINICARD, config, null);
   }
 
-  /**
-   * Returns the underlying core solver.
-   * <p>
-   * ATTENTION: by influencing the underlying solver directly, you can mess things up completely!  You should really
-   * know, what you are doing.
-   *
-   * @return the underlying core solver
-   */
-  public MiniSatStyleSolver underlyingSolver() {
-    return this.solver;
-  }
-
-  /**
-   * Returns the initial phase of literals of this solver.
-   *
-   * @return the initial phase of literals of this solver
-   */
-  public boolean initialPhase() {
-    return this.initialPhase;
-  }
-
   @Override
   public void add(final Formula formula) {
     if (formula.type() == FType.PBC) {
@@ -197,19 +197,12 @@ public final class MiniSat extends SATSolver {
   }
 
   @Override
-  public String toString() {
-    return String.format("MiniSat{result=%s, incremental=%s}", this.result, this.incremental);
-  }
-
-  @Override
   public CCIncrementalData addIncrementalCC(PBConstraint cc) {
     if (!cc.isCC())
       throw new IllegalArgumentException("Cannot generate an incremental cardinality constraint on a pseudo-Boolean constraint");
     final EncodingResult result = EncodingResult.resultForMiniSat(this.f, this);
     return ccEncoder.encodeIncremental(cc, result);
   }
-
-  private enum SolverStyle {MINISAT, GLUCOSE, MINICARD}
 
   @Override
   protected void addClause(final Formula formula) {
@@ -372,9 +365,27 @@ public final class MiniSat extends SATSolver {
     return model;
   }
 
+  /**
+   * Returns the underlying core solver.
+   * <p>
+   * ATTENTION: by influencing the underlying solver directly, you can mess things up completely!  You should really
+   * know, what you are doing.
+   * @return the underlying core solver
+   */
+  public MiniSatStyleSolver underlyingSolver() {
+    return this.solver;
+  }
 
+  /**
+   * Returns the initial phase of literals of this solver.
+   * @return the initial phase of literals of this solver
+   */
+  public boolean initialPhase() {
+    return this.initialPhase;
+  }
 
-
-
-
+  @Override
+  public String toString() {
+    return String.format("MiniSat{result=%s, incremental=%s}", this.result, this.incremental);
+  }
 }

@@ -61,7 +61,9 @@ import org.logicng.solvers.datastructures.CLWatch;
 
 import java.io.PrintStream;
 
-import static org.logicng.datastructures.Tristate.*;
+import static org.logicng.datastructures.Tristate.FALSE;
+import static org.logicng.datastructures.Tristate.TRUE;
+import static org.logicng.datastructures.Tristate.UNDEF;
 
 /**
  * A minimalistic version of the CleaneLing solver.

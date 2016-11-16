@@ -28,7 +28,11 @@
 
 package org.logicng.collections;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * A simple vector implementation (inspired by MiniSat, CleaneLing, Sat4J).
@@ -101,6 +105,14 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
+   * Returns the size of the vector.
+   * @return the size of the vector
+   */
+  public int size() {
+    return this.size;
+  }
+
+  /**
    * Returns the last element of the vector and leaves it on the vector.
    * @return the last element of the vector
    */
@@ -120,25 +132,22 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
-   * Ensures that this vector has the given size.  If not - the size is doubled and the old elements are copied.
-   * @param newSize the size to ensure
-   */
-  @SuppressWarnings("unchecked")
-  private void ensure(final int newSize) {
-    if (newSize >= this.elements.length) {
-      final T[] newArray = (T[]) new Object[Math.max(newSize, this.size * 2)];
-      System.arraycopy(this.elements, 0, newArray, 0, this.size);
-      this.elements = newArray;
-    }
-  }
-
-  /**
    * Pushes an element and assumes that there is enough space on the vector.
    * @param element the element to push
    * @throws ArrayIndexOutOfBoundsException if there was not enough space on the vector
    */
   public void unsafePush(final T element) {
     this.elements[this.size++] = element;
+  }
+
+  /**
+   * Returns the element at a given position in the vector.
+   * @param position the position
+   * @return the element at the position
+   * @throws ArrayIndexOutOfBoundsException if the position is not found in the vector
+   */
+  public final T get(int position) {
+    return this.elements[position];
   }
 
   /**
@@ -238,28 +247,6 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
-   * Returns the size of the vector.
-   * @return the size of the vector
-   */
-  public int size() {
-    return this.size;
-  }
-
-  /**
-   * Returns the element at a given position in the vector.
-   *
-   * @param position
-   *     the position
-   *
-   * @return the element at the position
-   * @throws ArrayIndexOutOfBoundsException
-   *     if the position is not found in the vector
-   */
-  public final T get(int position) {
-    return this.elements[position];
-  }
-
-  /**
    * Clears the vector.  This method only sets the size to 0.  The elements are not nulled out.
    * Use {@link #release()} for this purpose.
    */
@@ -273,6 +260,14 @@ public final class LNGVector<T> implements Iterable<T> {
   public void release() {
     Arrays.fill(this.elements, null);
     this.size = 0;
+  }
+
+  /**
+   * Sorts this vector with a given comparator (with JDK sorting).
+   * @param comparator the comparator
+   */
+  public void sort(final Comparator<T> comparator) {
+    Arrays.sort(this.elements, 0, this.size, comparator);
   }
 
   /**
@@ -357,19 +352,24 @@ public final class LNGVector<T> implements Iterable<T> {
   }
 
   /**
-   * Sorts this vector with a given comparator (with JDK sorting).
-   * @param comparator the comparator
-   */
-  public void sort(final Comparator<T> comparator) {
-    Arrays.sort(this.elements, 0, this.size, comparator);
-  }
-
-  /**
    * Returns this vector's contents as an array.
    * @return the array
    */
   public T[] toArray() {
     return Arrays.copyOf(this.elements, this.size);
+  }
+
+  /**
+   * Ensures that this vector has the given size.  If not - the size is doubled and the old elements are copied.
+   * @param newSize the size to ensure
+   */
+  @SuppressWarnings("unchecked")
+  private void ensure(final int newSize) {
+    if (newSize >= this.elements.length) {
+      final T[] newArray = (T[]) new Object[Math.max(newSize, this.size * 2)];
+      System.arraycopy(this.elements, 0, newArray, 0, this.size);
+      this.elements = newArray;
+    }
   }
 
   @Override

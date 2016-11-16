@@ -50,7 +50,11 @@
 
 package org.logicng.solvers.sat;
 
-import org.logicng.collections.*;
+import org.logicng.collections.LNGBooleanVector;
+import org.logicng.collections.LNGByteVector;
+import org.logicng.collections.LNGDoublePriorityQueue;
+import org.logicng.collections.LNGIntVector;
+import org.logicng.collections.LNGVector;
 import org.logicng.datastructures.Tristate;
 import org.logicng.handlers.SATHandler;
 import org.logicng.solvers.datastructures.CLClause;
@@ -102,6 +106,36 @@ public abstract class CleaneLingStyleSolver {
   }
 
   /**
+   * Returns the sign of a literal.
+   * @param lit the literal
+   * @return -1 for a negative literal, 1 for a positive literal
+   */
+  protected static byte sign(int lit) {
+    return lit < 0 ? (byte) -1 : (byte) 1;
+  }
+
+  /**
+   * Returns the next number in the luby sequence.
+   * @param i the base value
+   * @return the next number in the luby sequence
+   */
+  protected static long luby(long i) {
+    long res = 0;
+    long k;
+    for (k = 1; res == 0 && k < 64; k++) {
+      if (i == (1L << k) - 1)
+        res = 1L << (k - 1);
+    }
+    k = 1;
+    while (res == 0) {
+      if ((1L << (k - 1)) <= i && i < (1L << k) - 1)
+        res = luby(i - (1L << (k - 1)) + 1);
+      k++;
+    }
+    return res;
+  }
+
+  /**
    * Initializes the internal solver state.
    */
   private void initialize() {
@@ -127,27 +161,6 @@ public abstract class CleaneLingStyleSolver {
   }
 
   /**
-   * Returns the next number in the luby sequence.
-   * @param i the base value
-   * @return the next number in the luby sequence
-   */
-  protected static long luby(long i) {
-    long res = 0;
-    long k;
-    for (k = 1; res == 0 && k < 64; k++) {
-      if (i == (1L << k) - 1)
-        res = 1L << (k - 1);
-    }
-    k = 1;
-    while (res == 0) {
-      if ((1L << (k - 1)) <= i && i < (1L << k) - 1)
-        res = luby(i - (1L << (k - 1)) + 1);
-      k++;
-    }
-    return res;
-  }
-
-  /**
    * Adds a literal to the solver.  The literal 0 terminates a clause.
    * @param lit the literal
    */
@@ -160,6 +173,31 @@ public abstract class CleaneLingStyleSolver {
         newPushConnectClause();
       addedlits.clear();
     }
+  }
+
+  /**
+   * Solves the formula currently stored in the solver.  Returns {@link Tristate#TRUE} if the formula is satisfiable (SAT),
+   * {@link Tristate#FALSE} if the formula is unsatisfiable (UNSAT), or {@link Tristate#UNDEF} if the computation was canceled
+   * by a {@link SATHandler}.  If {@code null} is passed as handler, the solver will run until the satisfiability is decided.
+   * @param handler a sat handler
+   * @return {@link Tristate#TRUE} if the formula is satisfiable, {@link Tristate#FALSE} if the formula is not satisfiable, or
+   * {@link Tristate#UNDEF} if the computation was canceled.
+   */
+  public abstract Tristate solve(final SATHandler handler);
+
+  /**
+   * Returns the current model of the solver or an empty vector if there is none.
+   * @return the current model of the solver
+   */
+  public LNGBooleanVector model() {
+    return this.model;
+  }
+
+  /**
+   * Resets the solver.
+   */
+  public void reset() {
+    this.initialize();
   }
 
   /**
@@ -214,6 +252,49 @@ public abstract class CleaneLingStyleSolver {
   }
 
   /**
+   * Stores a new clause.
+   * @param redundant {@code true} if the clause is learnt, {@code false} if it is a original clause
+   * @param glue      the glue value
+   */
+  protected abstract void newPushConnectClause(boolean redundant, int glue);
+
+  /**
+   * Returns the maximum variable index.
+   * @return the maximum variable index
+   */
+  protected int maxvar() {
+    int res = vars.size();
+    if (res != 0) {
+      assert res > 1;
+      res--;
+    }
+    return res;
+  }
+
+  /**
+   * Returns the variable for a given literal.
+   * @param lit the literal
+   * @return the variable for the literal
+   */
+  protected CLVar var(int lit) {
+    int idx = Math.abs(lit);
+    assert 0 < idx && idx < vars.size();
+    return vars.get(idx);
+  }
+
+  /**
+   * Returns the value for a given literal.
+   * @param lit the literal
+   * @return the value as byte (-1 = false, 1 = true)
+   */
+  protected byte val(int lit) {
+    byte res = vals.get(Math.abs(lit));
+    if (lit < 0)
+      res = (byte) -res;
+    return res;
+  }
+
+  /**
    * Returns whether a given literal is marked or not.
    * @param lit the literal
    * @return whether a given literal is marked or not
@@ -242,39 +323,6 @@ public abstract class CleaneLingStyleSolver {
   }
 
   /**
-   * Stores a new clause.
-   * @param redundant {@code true} if the clause is learnt, {@code false} if it is a original clause
-   * @param glue      the glue value
-   */
-  protected abstract void newPushConnectClause(boolean redundant, int glue);
-
-  /**
-   * Returns the variable for a given literal.
-   *
-   * @param lit
-   *     the literal
-   *
-   * @return the variable for the literal
-   */
-  protected CLVar var(int lit) {
-    int idx = Math.abs(lit);
-    assert 0 < idx && idx < vars.size();
-    return vars.get(idx);
-  }
-
-  /**
-   * Returns the sign of a literal.
-   *
-   * @param lit
-   *     the literal
-   *
-   * @return -1 for a negative literal, 1 for a positive literal
-   */
-  protected static byte sign(int lit) {
-    return lit < 0 ? (byte) -1 : (byte) 1;
-  }
-
-  /**
    * Unmarks all variables up to a given level
    * @param level the level
    */
@@ -290,43 +338,12 @@ public abstract class CleaneLingStyleSolver {
   }
 
   /**
-   * Solves the formula currently stored in the solver.  Returns {@link Tristate#TRUE} if the formula is satisfiable (SAT),
-   * {@link Tristate#FALSE} if the formula is unsatisfiable (UNSAT), or {@link Tristate#UNDEF} if the computation was canceled
-   * by a {@link SATHandler}.  If {@code null} is passed as handler, the solver will run until the satisfiability is decided.
-   * @param handler a sat handler
-   * @return {@link Tristate#TRUE} if the formula is satisfiable, {@link Tristate#FALSE} if the formula is not satisfiable, or
-   * {@link Tristate#UNDEF} if the computation was canceled.
+   * Returns the watchers for a given literal.
+   * @param lit the literal
+   * @return the watchers for the literal
    */
-  public abstract Tristate solve(final SATHandler handler);
-
-  /**
-   * Returns the current model of the solver or an empty vector if there is none.
-   *
-   * @return the current model of the solver
-   */
-  public LNGBooleanVector model() {
-    return this.model;
-  }
-
-  /**
-   * Resets the solver.
-   */
-  public void reset() {
-    this.initialize();
-  }
-
-  /**
-   * Returns the maximum variable index.
-   *
-   * @return the maximum variable index
-   */
-  protected int maxvar() {
-    int res = vars.size();
-    if (res != 0) {
-      assert res > 1;
-      res--;
-    }
-    return res;
+  protected LNGVector<CLWatch> watches(int lit) {
+    return watches.get(lit < 0 ? -lit * 2 - 1 : lit * 2);
   }
 
   /**
@@ -341,12 +358,18 @@ public abstract class CleaneLingStyleSolver {
   }
 
   /**
-   * Returns the watchers for a given literal.
+   * Marks the frame for a given literal's decision level.
    * @param lit the literal
-   * @return the watchers for the literal
+   * @return {@code true} if the frame was newly marked, {@code false} if the frame was already marked
    */
-  protected LNGVector<CLWatch> watches(int lit) {
-    return watches.get(lit < 0 ? -lit * 2 - 1 : lit * 2);
+  protected boolean markFrame(int lit) {
+    final int currentlevel = var(lit).level();
+    final CLFrame frame = control.get(currentlevel);
+    if (frame.mark())
+      return false;
+    frame.setMark(true);
+    frames.push(currentlevel);
+    return true;
   }
 
   /**
@@ -400,40 +423,39 @@ public abstract class CleaneLingStyleSolver {
   }
 
   /**
+   * Assigns a given literal.
+   * @param lit    the literal
+   * @param reason the reason
+   */
+  protected abstract void assign(int lit, final CLClause reason);
+
+  /**
    * Unassigns a given literal
    * @param lit the literal
    */
   protected abstract void unassign(int lit);
 
   /**
-   * Analyzes a given literal.
-   * @param lit the literal
-   * @return the result of the analysis
+   * Returns {@code true} if all assignments were propagated, {@code false} otherwise.
+   * @return {@code true} if all assignments were propagated
    */
-  protected boolean pullLit(int lit) {
-    if (val(lit) == VALUE_TRUE)
-      return false;
-    if (marked(lit) != 0)
-      return false;
-    mark(lit);
-    bumpLit(lit);
-    if (var(lit).level() == level)
-      return true;
-    markFrame(lit);
-    addedlits.push(lit);
-    return false;
+  protected boolean propagated() {
+    return next == trail.size();
   }
 
   /**
-   * Returns the value for a given literal.
-   * @param lit the literal
-   * @return the value as byte (-1 = false, 1 = true)
+   * Rescores all variables.
    */
-  protected byte val(int lit) {
-    byte res = vals.get(Math.abs(lit));
-    if (lit < 0)
-      res = (byte) -res;
-    return res;
+  protected void rescore() {
+    double maxScore = scoreIncrement;
+    for (int idx = 1; idx < vars.size(); idx++) {
+      double p = decisions.priority(idx);
+      if (p > maxScore)
+        maxScore = p;
+    }
+    double factor = 1 / maxScore;
+    decisions.rescore(factor);
+    scoreIncrement *= factor;
   }
 
   /**
@@ -453,33 +475,22 @@ public abstract class CleaneLingStyleSolver {
   }
 
   /**
-   * Marks the frame for a given literal's decision level.
+   * Analyzes a given literal.
    * @param lit the literal
-   * @return {@code true} if the frame was newly marked, {@code false} if the frame was already marked
+   * @return the result of the analysis
    */
-  protected boolean markFrame(int lit) {
-    final int currentlevel = var(lit).level();
-    final CLFrame frame = control.get(currentlevel);
-    if (frame.mark())
+  protected boolean pullLit(int lit) {
+    if (val(lit) == VALUE_TRUE)
       return false;
-    frame.setMark(true);
-    frames.push(currentlevel);
-    return true;
-  }
-
-  /**
-   * Rescores all variables.
-   */
-  protected void rescore() {
-    double maxScore = scoreIncrement;
-    for (int idx = 1; idx < vars.size(); idx++) {
-      double p = decisions.priority(idx);
-      if (p > maxScore)
-        maxScore = p;
-    }
-    double factor = 1 / maxScore;
-    decisions.rescore(factor);
-    scoreIncrement *= factor;
+    if (marked(lit) != 0)
+      return false;
+    mark(lit);
+    bumpLit(lit);
+    if (var(lit).level() == level)
+      return true;
+    markFrame(lit);
+    addedlits.push(lit);
+    return false;
   }
 
   /**
@@ -535,6 +546,19 @@ public abstract class CleaneLingStyleSolver {
   }
 
   /**
+   * Assumes a given decision.
+   * @param decision the decision
+   */
+  protected void assume(int decision) {
+    assert propagated();
+    level++;
+    int height = trail.size();
+    control.push(new CLFrame(decision, level, height));
+    assert level + 1 == control.size();
+    assign(decision, null);
+  }
+
+  /**
    * Checks if there are unassigned literals left.
    * @return {@code false} if all literals are assigned, {@code true} otherwise
    */
@@ -557,40 +581,6 @@ public abstract class CleaneLingStyleSolver {
     assume(decision);
     return true;
   }
-
-  /**
-   * Returns {@code true} if all assignments were propagated, {@code false} otherwise.
-   *
-   * @return {@code true} if all assignments were propagated
-   */
-  protected boolean propagated() {
-    return next == trail.size();
-  }
-
-  /**
-   * Assumes a given decision.
-   *
-   * @param decision
-   *     the decision
-   */
-  protected void assume(int decision) {
-    assert propagated();
-    level++;
-    int height = trail.size();
-    control.push(new CLFrame(decision, level, height));
-    assert level + 1 == control.size();
-    assign(decision, null);
-  }
-
-  /**
-   * Assigns a given literal.
-   *
-   * @param lit
-   *     the literal
-   * @param reason
-   *     the reason
-   */
-  protected abstract void assign(int lit, final CLClause reason);
 
   /**
    * Initializes the limits.
