@@ -42,7 +42,7 @@ import java.util.List;
 
 /**
  * The result of an encoding.
- *
+ * <p>
  * Encodings (normal forms, cardinality constraints, pseudo-Boolean constraint) are often used only when adding
  * formulas to the SAT solver.  Therefore it is not necessary to generate all the formulas required for the encoding
  * in the formula factory and therefore polluting the factory and the heap.  This class can be used to connect an
@@ -53,9 +53,9 @@ import java.util.List;
  */
 public final class EncodingResult {
   final FormulaFactory f;
-  private List<Formula> result;
   private final MiniSat miniSat;
   private final CleaneLing cleaneLing;
+  private List<Formula> result;
 
   /**
    * Constructs a new CC encoding algorithm.

@@ -17,8 +17,8 @@ import java.io.InputStream;
 public final class ForbearingParser {
 
   private final FormulaFactory f;
-  private final org.symcom.svm_proto.model.logic.parsers.ForbearingParserLexer lexer;
-  private final org.symcom.svm_proto.model.logic.parsers.ForbearingParserParser parser;
+  private final org.logicng.io.parsers.ForbearingParserLexer lexer;
+  private final org.logicng.io.parsers.ForbearingParserParser parser;
 
   /**
    * Constructs a new parser.
@@ -28,9 +28,9 @@ public final class ForbearingParser {
   public ForbearingParser(final FormulaFactory f) {
     this.f = f;
     ANTLRInputStream input = new ANTLRInputStream();
-    this.lexer = new org.symcom.svm_proto.model.logic.parsers.ForbearingParserLexer(input);
+    this.lexer = new org.logicng.io.parsers.ForbearingParserLexer(input);
     CommonTokenStream tokens = new CommonTokenStream(this.lexer);
-    this.parser = new org.symcom.svm_proto.model.logic.parsers.ForbearingParserParser(tokens);
+    this.parser = new org.logicng.io.parsers.ForbearingParserParser(tokens);
     this.parser.setFormulaFactory(f);
     this.lexer.removeErrorListeners();
     this.parser.removeErrorListeners();

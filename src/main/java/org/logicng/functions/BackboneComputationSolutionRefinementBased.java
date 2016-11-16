@@ -53,7 +53,7 @@ public class BackboneComputationSolutionRefinementBased implements FormulaFuncti
    * Computes the backbone of the given formula. I.e. a set of literals that is fix in all satisfying assignments.
    * @param input   the formula whos backbone is to be computed
    * @param cache   - not supported at the moment -
-   * @return        the backbone of the formula. An empty SortedSet if there is no backbone.
+   * @return the backbone of the formula. An empty SortedSet if there is no backbone.
    *
    * @throws IllegalArgumentException if the input formula is unsatisfiable.
    */

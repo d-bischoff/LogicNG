@@ -66,7 +66,7 @@ public class IncrementableAssignment extends Assignment {
    */
   public IncrementableAssignment(final Collection<? extends Literal> lits) {
     super(lits, false);
-    lits.stream().<Variable>map(Literal::variable).collect(Collectors.toCollection(() -> variableOrdering));
+    lits.stream().map(Literal::variable).collect(Collectors.toCollection(() -> variableOrdering));
   }
 
   /**
@@ -80,7 +80,7 @@ public class IncrementableAssignment extends Assignment {
    */
   public IncrementableAssignment(Collection<? extends Literal> lits, boolean fastEvaluable) {
     super(lits, fastEvaluable);
-    lits.stream().<Variable>map(Literal::variable).collect(Collectors.toCollection(() -> variableOrdering));
+    lits.stream().map(Literal::variable).collect(Collectors.toCollection(() -> variableOrdering));
   }
 
   /**

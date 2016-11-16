@@ -36,7 +36,7 @@ import org.antlr.v4.runtime.LexerNoViableAltException;
  * @version 1.0
  * @since 1.0
  */
-public final class PropositionalLexer extends org.logicng.io.parsers.LogicNGPropositionalLexer {
+public final class PropositionalLexer extends LogicNGPropositionalLexer {
 
   /**
    * Constructs a new LogicNG lexer.

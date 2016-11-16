@@ -72,8 +72,20 @@ final class PBAdderNetworks implements PBEncoding {
   private final FormulaFactory f;
   private List<Formula> formula;
 
+  /**
+   * Constructs a new pseudo-Boolean adder network.
+   * @param f the formula factory
+   */
   public PBAdderNetworks(final FormulaFactory f) {
     this.f = f;
+  }
+
+  private static int ldInt(int x) {
+    int ldretutn = 0;
+    for (int i = 0; i < 31; i++)
+      if ((x & (1 << i)) > 0)
+        ldretutn = i + 1;
+    return ldretutn;
   }
 
   @Override
@@ -81,7 +93,7 @@ final class PBAdderNetworks implements PBEncoding {
     this.formula = formula;
     final LNGVector<Literal> result = new LNGVector<>();
     final LNGVector<LinkedList<Literal>> buckets = new LNGVector<>();
-    int nb = this.ldInt(rhs);
+    int nb = ldInt(rhs);
     for (int iBit = 0; iBit < nb; ++iBit) {
       buckets.push(new LinkedList<Literal>());
       result.push(null);
@@ -101,7 +113,7 @@ final class PBAdderNetworks implements PBEncoding {
     Literal z;
 
     for (int i = 0; i < buckets.size(); i++) {
-      if (buckets.get(i).size() == 0)
+      if (buckets.get(i).isEmpty())
         continue;
       if (i == buckets.size() - 1 && buckets.get(i).size() >= 2) {
         buckets.push(new LinkedList<Literal>());
@@ -111,23 +123,24 @@ final class PBAdderNetworks implements PBEncoding {
         x = buckets.get(i).removeFirst();
         y = buckets.get(i).removeFirst();
         z = buckets.get(i).removeFirst();
-        Literal xs = this.FA_sum(x, y, z);
-        Literal xc = this.FA_carry(x, y, z);
+        Literal xs = this.faSum(x, y, z);
+        Literal xc = this.faCarry(x, y, z);
         buckets.get(i).add(xs);
         buckets.get(i + 1).add(xc);
-        this.FA_extra(xc, xs, x, y, z);
+        this.faExtra(xc, xs, x, y, z);
       }
       if (buckets.get(i).size() == 2) {
         x = buckets.get(i).removeFirst();
         y = buckets.get(i).removeFirst();
-        buckets.get(i).add(this.HA_sum(x, y));
-        buckets.get(i + 1).add(this.HA_carry(x, y));
+        buckets.get(i).add(this.haSum(x, y));
+        buckets.get(i + 1).add(this.haCarry(x, y));
       }
       result.set(i, buckets.get(i).removeFirst());
     }
   }
 
-  private LNGBooleanVector numToBits(int n, int number) {
+  private LNGBooleanVector numToBits(int n, int num) {
+    int number = num;
     final LNGBooleanVector bits = new LNGBooleanVector();
     for (int i = n - 1; i >= 0; i--) {
       int tmp = 1 << i;
@@ -143,7 +156,7 @@ final class PBAdderNetworks implements PBEncoding {
   }
 
   private void lessThanOrEqual(final LNGVector<Literal> xs, final LNGBooleanVector ys, final List<Formula> formula) {
-    assert (xs.size() == ys.size());
+    assert xs.size() == ys.size();
     final List<Literal> clause = new ArrayList<>();
     boolean skip;
     for (int i = 0; i < xs.size(); ++i) {
@@ -171,7 +184,7 @@ final class PBAdderNetworks implements PBEncoding {
     }
   }
 
-  private void FA_extra(final Literal xc, final Literal xs, final Literal a, final Literal b, final Literal c) {
+  private void faExtra(final Literal xc, final Literal xs, final Literal a, final Literal b, final Literal c) {
     this.formula.add(this.f.clause(xc.negate(), xs.negate(), a));
     this.formula.add(this.f.clause(xc.negate(), xs.negate(), b));
     this.formula.add(this.f.clause(xc.negate(), xs.negate(), c));
@@ -180,8 +193,7 @@ final class PBAdderNetworks implements PBEncoding {
     this.formula.add(this.f.clause(xc, xs, c.negate()));
   }
 
-
-  private Literal FA_carry(final Literal a, final Literal b, final Literal c) {
+  private Literal faCarry(final Literal a, final Literal b, final Literal c) {
     final Literal x = this.f.newPBVariable();
     this.formula.add(this.f.clause(b, c, x.negate()));
     this.formula.add(this.f.clause(a, c, x.negate()));
@@ -192,7 +204,7 @@ final class PBAdderNetworks implements PBEncoding {
     return x;
   }
 
-  private Literal FA_sum(final Literal a, final Literal b, final Literal c) {
+  private Literal faSum(final Literal a, final Literal b, final Literal c) {
     final Literal x = this.f.newPBVariable();
     this.formula.add(this.f.clause(a, b, c, x.negate()));
     this.formula.add(this.f.clause(a, b.negate(), c.negate(), x.negate()));
@@ -205,7 +217,7 @@ final class PBAdderNetworks implements PBEncoding {
     return x;
   }
 
-  private Literal HA_carry(final Literal a, final Literal b) {
+  private Literal haCarry(final Literal a, final Literal b) {
     final Literal x = this.f.newPBVariable();
     this.formula.add(this.f.clause(a, x.negate()));
     this.formula.add(this.f.clause(b, x.negate()));
@@ -213,20 +225,12 @@ final class PBAdderNetworks implements PBEncoding {
     return x;
   }
 
-  private Literal HA_sum(final Literal a, final Literal b) {
+  private Literal haSum(final Literal a, final Literal b) {
     final Literal x = this.f.newPBVariable();
     this.formula.add(this.f.clause(a.negate(), b.negate(), x.negate()));
     this.formula.add(this.f.clause(a, b, x.negate()));
     this.formula.add(this.f.clause(a.negate(), b, x));
     this.formula.add(this.f.clause(a, b.negate(), x));
     return x;
-  }
-
-  private int ldInt(int x) {
-    int ldretutn = 0;
-    for (int i = 0; i < 31; i++)
-      if ((x & (1 << i)) > 0)
-        ldretutn = i + 1;
-    return ldretutn;
   }
 }

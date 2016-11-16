@@ -37,15 +37,15 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public final class Pair<A, B> {
+public class Pair<A, B> {
 
-  private final A a;
-  private final B b;
+  protected final A a;
+  protected final B b;
 
   /**
    * Constructs a new pair.
    * @param a the first entry
-   * @param b the seconds entry
+   * @param b the second entry
    */
   public Pair(final A a, final B b) {
     this.a = a;
