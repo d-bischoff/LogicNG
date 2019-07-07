@@ -59,14 +59,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.logicng.datastructures.Tristate.FALSE;
@@ -552,6 +545,21 @@ public class SATTest {
       }
       s.reset();
     }
+  }
+
+  @Test
+  public void testModelEnumerationWithDontCares() {
+    FormulaFactory factory = new FormulaFactory();
+    SATSolver solver = MiniSat.miniSat(factory);
+    Variable a = factory.variable("A");
+    Variable b = factory.variable("B");
+    solver.add(a);
+    List<Variable> allVars = new LinkedList<>();
+    allVars.add(a);
+    allVars.add(b);
+    List<Assignment> models = solver.enumerateAllModels(null,allVars);
+    //models = A+B | A+-B
+    assertThat(2==models.size());
   }
 
   @Test
